@@ -73,6 +73,8 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .day b{display:block;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
 .day span{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
 .day.azi span{color:#93c5fd}
+.day.all{border-style:dashed;background:transparent}
+.day.all b{font-size:12.5px}
 .day[aria-pressed="true"]{border-color:transparent;background-image:var(--brand-gradient);background-size:250% 100%;color:#fff;box-shadow:0 8px 20px -10px rgba(124,58,237,.9)}
 .day[aria-pressed="true"] span{color:inherit;opacity:.85}
 .seg{display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:3px}
@@ -318,7 +320,7 @@ async function incarca(manual){
   if(!manual&&inZbor>0) return; // nu suprascrie o acțiune care încă se salvează
   state.loading=true;$("#refresh").classList.add("loading");
   try{
-    const r=await fetch(SCRIPT_URL+"?k="+encodeURIComponent(state.key),{cache:"no-store"});
+    const r=await fetch(SCRIPT_URL+"?k="+encodeURIComponent(state.key)+(vreauTot()?"":"&z=2"),{cache:"no-store"});
     const j=await r.json();
     if(j.eroare){
       if(/acces/i.test(j.eroare)){ arataSetup("Cheia nu mai e valabilă. Introdu-o din nou."); return; }
@@ -384,9 +386,14 @@ function line2(it){
 }
 
 // ---------- Afișare ----------
+// De obicei se încarcă doar azi și mâine (rapid). Tot programul doar la cerere: „Toate zilele” sau căutare, 10 minute.
+const vreauTot=()=>Date.now()<(state.totPana||0);
+function cereTot(){const era=vreauTot();state.totPana=Date.now()+10*60000;if(!era||(state.data&&state.data.doarAziMaine))incarca(true);}
 function renderDays(){
-  const azi=isoAzi();
-  $("#days").innerHTML=DAYS.map(d=>`<button class="day${d.id===azi?" azi":""}" type="button" data-id="${d.id}" aria-pressed="${d.id===state.day}"><span>${d.id===azi?"Azi":d.dow}</span><b>${d.d}</b></button>`).join("");
+  const azi=isoAzi(),m=new Date();m.setDate(m.getDate()+1);
+  const maine=m.getFullYear()+"-"+pad(m.getMonth()+1)+"-"+pad(m.getDate());
+  $("#days").innerHTML=DAYS.map(d=>`<button class="day${d.id===azi?" azi":""}" type="button" data-id="${d.id}" aria-pressed="${d.id===state.day}"><span>${d.id===azi?"Azi":d.id===maine?"Mâine":d.dow}</span><b>${d.d}</b></button>`).join("")
+    +(state.data&&state.data.doarAziMaine?`<button class="day all" type="button" data-all="1"><span>Program</span><b>Toate zilele</b></button>`:"");
   const sel=$("#days .day[aria-pressed=true]");
   if(sel) sel.scrollIntoView({inline:"center",block:"nearest"});
 }
@@ -592,7 +599,7 @@ function arataSetup(msg){
     if(!sel){$("#setupErr").hidden=false;$("#setupErr").textContent="Alege-ți numele.";return;}
     $("#setupGo").textContent="Verific…";
     try{
-      const j=await (await fetch(SCRIPT_URL+"?k="+encodeURIComponent(k),{cache:"no-store"})).json();
+      const j=await (await fetch(SCRIPT_URL+"?k="+encodeURIComponent(k)+"&z=2",{cache:"no-store"})).json();
       if(j.eroare) throw new Error(/acces/i.test(j.eroare)?"Cheia nu e corectă.":j.eroare);
       state.key=k;state.me=sel;state.data=j;state.sync=Date.now();
       store.set("po.key",k);store.set("po.me",sel);store.set("po.data",j);store.set("po.sync",state.sync);
@@ -609,14 +616,14 @@ document.querySelectorAll(".seg button").forEach(b=>{
   b.setAttribute("aria-pressed",b.dataset.f===state.filter);
   b.onclick=()=>{state.filter=b.dataset.f;store.set("po.filter",state.filter);document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));render();};
 });
-$("#days").onclick=e=>{const b=e.target.closest(".day");if(!b)return;state.day=b.dataset.id;renderDays();render();$("#list").scrollTop=0;};
+$("#days").onclick=e=>{const b=e.target.closest(".day");if(!b)return;if(b.dataset.all){cereTot();return;}if(vreauTot())state.totPana=Date.now()+10*60000;state.day=b.dataset.id;renderDays();render();$("#list").scrollTop=0;};
 $("#list").onclick=e=>{
   const t=e.target.closest("[data-take]");if(t){takeFromCard(t.dataset.take);return;}
   const f=e.target.closest("[data-finish]");if(f){finishFromCard(f.dataset.finish);return;}
   const r=e.target.closest("[data-rfr]");if(r){toggleRfr(r.dataset.rfr);return;}
   const c=e.target.closest(".card[data-id]");if(c)openDetail(c.dataset.id);
 };
-$("#q").addEventListener("input",e=>{state.q=e.target.value;$("#qClear").hidden=!state.q;render();});
+$("#q").addEventListener("input",e=>{state.q=e.target.value;$("#qClear").hidden=!state.q;if(state.q.trim())cereTot();render();});
 $("#qClear").onclick=()=>{state.q="";$("#q").value="";$("#qClear").hidden=true;render();};
 $("#refresh").onclick=()=>incarca(true);
 $("#meBtn").onclick=pickPerson;
