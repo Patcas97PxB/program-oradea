@@ -264,11 +264,9 @@ const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.
              set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const state={
   key:store.get("po.key",""), me:store.get("po.me",""), filter:store.get("po.filter","mine"), day:null, q:"",
-  data:store.get("po.data",null), loading:false,
-  // Statusuri puse din aplicație. În pilot rămân pe acest telefon; la etapa 4 se sincronizează pentru toți.
-  assign:store.get("po.assign",{}), prog:store.get("po.prog",{}), rfr:store.get("po.rfr",{})
+  data:store.get("po.data",null), loading:false
 };
-const save=()=>{store.set("po.assign",state.assign);store.set("po.prog",state.prog);store.set("po.rfr",state.rfr)};
+["po.assign","po.prog","po.rfr"].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}}); // statusurile vechi, doar locale
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -317,6 +315,7 @@ function pregateste(){
 
 async function incarca(manual){
   if(!state.key||state.loading) return;
+  if(!manual&&inZbor>0) return; // nu suprascrie o acțiune care încă se salvează
   state.loading=true;$("#refresh").classList.add("loading");
   try{
     const r=await fetch(SCRIPT_URL+"?k="+encodeURIComponent(state.key),{cache:"no-store"});
@@ -345,31 +344,32 @@ function subtitlu(){
   $("#subtitle").textContent=(min===null?"Ultima variantă salvată":min<1?"Sincronizat acum":"Sincronizat acum "+min+" min")+ora+" · "+numeAfisat(state.me);
 }
 
-// ---------- Statusuri ----------
-const who=it=>state.assign[it.id]??it.who;
-const prog=it=>state.prog[it.id]||{};
-const isDone=it=>!!prog(it).done||(it.ok&&!(it.id in state.assign)&&!(it.id in state.prog));
-const rfrOk=it=>it.id in state.rfr?state.rfr[it.id]:it.r.rfr==="facut";
-const touched=it=>it.id in state.assign||it.id in state.prog||it.id in state.rfr;
+// ---------- Statusuri (comune pentru toți colegii, ținute de script; documentul nu se modifică) ----------
+// Pentru fiecare intervenție: plus/minus = colegi adăugați/scoși față de program, pornit, finalizat, rfr.
+const statusuri=()=>(state.data&&state.data.statusuri)||{};
+const stOf=it=>(statusuri()[it.dayId]||{})[it.id]||null;
+function who(it){
+  const s=stOf(it); if(!s) return it.who;
+  const w=it.who.filter(x=>!(s.minus||[]).includes(x));
+  (s.plus||[]).forEach(x=>{if(!w.includes(x)&&!(s.minus||[]).includes(x))w.push(x);});
+  return w;
+}
+function prog(it){const s=stOf(it)||{};return {started:s.pornit&&s.pornit.ora,startedBy:s.pornit&&s.pornit.cine,done:s.finalizat&&s.finalizat.ora,doneBy:s.finalizat&&s.finalizat.cine};}
+const isDone=it=>!!prog(it).done||it.ok;
+const rfrOk=it=>{const s=stOf(it);return s&&s.rfr?s.rfr.facut:it.r.rfr==="facut";};
 
 const NAMES="BOGDAN|PATCAS|SEBI|BRATU|ANGEL|LASCU|RARES|VLAD|FILIP|MIHALI|IULIAN|IUTI|MLADIN|URSU|VID|CIPRI|LUCIAN|COLAB|GEO(?:RGE)?(?:\\s*(?:URSU|U|VID|V|X2)\\.?)?";
 const TAIL=new RegExp("(?:\\s*[\\/+]?\\s*(?:"+NAMES+")\\.?)+\\s*(?:OK!?)?\\s*$","i");
 function docLine(it){
-  let txt=it.raw,tail="";
-  if(it.id in state.assign||it.id in state.prog){
-    txt=it.raw.replace(TAIL,"").replace(/\s+$/,"");
-    const w=who(it);
-    if(w.length) tail=" <b style='color:var(--predare)'>"+esc(w.join("/")+(isDone(it)?" OK!":""))+"</b>";
-  }
-  let h=esc(txt);
-  if(it.type==="predare"&&/RFR/.test(h)) h=h.replace("RFR",`<span class="${rfrOk(it)?"rfr-on":""}">RFR</span>`);
-  return h+tail;
+  let h=esc(it.raw);
+  if(it.type==="predare"&&/RFR/.test(h)) h=h.replace("RFR",`<span class="${it.r.rfr==="facut"?"rfr-on":""}">RFR</span>`);
+  return h;
 }
 
 function chips(it){
   const c=[],w=who(it),p=prog(it);
   if(isDone(it)) c.push(`<span class="chip st">✓ Finalizat${p.done?" "+p.done:""}</span>`);
-  else if(p.started) c.push(`<span class="chip st">Pornit ${esc(p.started)}</span>`);
+  else if(p.started) c.push(`<span class="chip st">Pornit ${esc(p.started)}${p.startedBy&&p.startedBy!==state.me?" · "+esc(numeAfisat(p.startedBy)):""}</span>`);
   if(it.type==="predare"&&!rfrOk(it)) c.push(`<span class="chip rfr-no">Lipsă RFR</span>`);
   if(it.pay) c.push(`<span class="chip${it.paid?"":" pay"}">${esc(it.pay)}</span>`);
   if(it.urgent) c.push(`<span class="chip pay">Urgent</span>`);
@@ -446,7 +446,7 @@ function openDetail(id,synced){
     ["Locație",it.type!=="transfer"?it.loc:null],["Rezervare",it.res],["Plată",it.pay]
   ].filter(r=>r[1]);
   let status;
-  if(done) status=`<div class="box"><div class="owner">✓ Finalizată de <b>${esc(w.map(numeAfisat).join(", ")||"—")}</b>${p.done?" la "+p.done:""}</div>
+  if(done) status=`<div class="box"><div class="owner">✓ Finalizată de <b>${esc(p.doneBy?numeAfisat(p.doneBy):w.map(numeAfisat).join(", ")||"—")}</b>${p.done?" la "+p.done:""}</div>
       ${p.done?`<button class="link-btn" type="button" data-act="undo">Anulează finalizarea</button>`:""}</div>`;
   else if(!mine) status=`<div class="box">${w.length?`<div class="owner">Alocată lui <b>${esc(w.map(numeAfisat).join(", "))}</b></div>`:`<div class="owner">Nimeni nu și-a luat-o încă.</div>`}
       <button class="take" type="button" data-act="take">${w.length?"Mă adaug și eu":"Iau eu intervenția"}</button></div>`;
@@ -484,9 +484,10 @@ function openDetail(id,synced){
      <div style="display:flex;flex-direction:column;gap:6px">
        <div class="count" style="padding:0">Rândul din program</div>
        <div class="raw">${docLine(it)}</div>
-       ${synced&&touched(it)?`<div class="count" style="padding:0;text-transform:none;letter-spacing:0">Salvat pe acest telefon. Documentul nu se modifică încă.</div>`:""}
+       ${stOf(it)?`<div class="count" style="padding:0;text-transform:none;letter-spacing:0">Statusul din aplicație îl văd toți colegii. Documentul nu se modifică.</div>`:""}
      </div>
    </div>`;
+  sh.dataset.id=it.id;
   sh.classList.add("open");
   $("#back").onclick=()=>sh.classList.remove("open");
   sh.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>act(it,b.dataset.act));
@@ -515,17 +516,43 @@ function pickPerson(){
   p.onclick=e=>{if(e.target===p)p.hidden=true;};
 }
 
-// ---------- Acțiuni ----------
-function act(it,a){
-  const w=[...who(it)],p={...prog(it)};
-  if(a==="take"){if(!w.includes(state.me))w.push(state.me);state.assign[it.id]=w;}
-  if(a==="drop"){state.assign[it.id]=w.filter(x=>x!==state.me);delete p.started;}
-  if(a==="start"){p.started=p.started?undefined:now();}
-  if(a==="done"){p.started=p.started||now();p.done=now();}
-  if(a==="undo"){delete p.done;}
-  if(Object.values(p).some(Boolean)) state.prog[it.id]=p; else delete state.prog[it.id];
-  save();render();openDetail(it.id,true);
+// ---------- Acțiuni: se aplică imediat pe ecran, apoi se trimit la script ca să le vadă toți ----------
+// Aceeași logică ca în doPost din script, ca ecranul să arate rezultatul fără să aștepte răspunsul.
+function aplicaLocal(it,actiune,valoare){
+  const toate=state.data.statusuri=state.data.statusuri||{};
+  const zi=toate[it.dayId]=toate[it.dayId]||{};
+  const s=zi[it.id]=zi[it.id]||{plus:[],minus:[]};
+  s.plus=s.plus||[];s.minus=s.minus||[];
+  const eu=state.me,ora=now(),pune=(l,x)=>{if(!l.includes(x))l.push(x)},scoate=(l,x)=>{const i=l.indexOf(x);if(i>=0)l.splice(i,1)};
+  if(actiune==="iau"){pune(s.plus,eu);scoate(s.minus,eu);}
+  if(actiune==="renunt"){scoate(s.plus,eu);pune(s.minus,eu);if(s.pornit&&s.pornit.cine===eu)s.pornit=null;}
+  if(actiune==="pornit") s.pornit=s.pornit?null:{cine:eu,ora};
+  if(actiune==="finalizat"){s.finalizat={cine:eu,ora};if(!s.pornit)s.pornit={cine:eu,ora};}
+  if(actiune==="anuleaza") s.finalizat=null;
+  if(actiune==="rfr") s.rfr={facut:!!valoare,cine:eu,ora};
 }
+let inZbor=0;
+async function trimite(it,actiune,valoare){
+  aplicaLocal(it,actiune,valoare);render();reimprospateazaDetaliu(it.id);
+  inZbor++;
+  try{
+    const r=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body:JSON.stringify({k:state.key,cine:state.me,zi:it.dayId,id:it.id,actiune,valoare})});
+    let j;
+    try{j=JSON.parse(await r.text());}catch(x){throw new Error("scriptul nu a răspuns corect");}
+    if(j.eroare) throw new Error(j.eroare);
+    state.data.statusuri[j.zi]=j.statusuri;store.set("po.data",state.data);
+  }catch(e){
+    toast("Nu s-a salvat: "+(e.message&&!/fetch|network|load/i.test(e.message)?e.message:"fără semnal")+". Încearcă din nou.");
+    inZbor--;await incarca();return;
+  }
+  inZbor--;render();reimprospateazaDetaliu(it.id);
+}
+function reimprospateazaDetaliu(id){
+  const sh=$("#sheet");if(sh.classList.contains("open")&&sh.dataset.id===id) openDetail(id);
+}
+const ACTIUNI={take:"iau",drop:"renunt",start:"pornit",done:"finalizat",undo:"anuleaza"};
+function act(it,a){trimite(it,ACTIUNI[a]);}
 let toastTimer=null;
 function toast(msg,undo){
   const t=$("#toast");t.textContent=msg;
@@ -534,20 +561,20 @@ function toast(msg,undo){
 }
 function takeFromCard(id){
   const it=ITEMS.find(x=>x.id===id); if(!it) return;
-  const w=[...who(it)];if(!w.includes(state.me))w.push(state.me);state.assign[it.id]=w;save();render();
-  toast(w.length>1?`Te-ai adăugat la ${it.plate||"intervenție"}`:`${it.plate||"Intervenția"} e a ta`);
+  const altii=who(it).length;
+  trimite(it,"iau");
+  toast(altii?`Te-ai adăugat la ${it.plate||"intervenție"}`:`${it.plate||"Intervenția"} e a ta`);
 }
 function finishFromCard(id){
   const it=ITEMS.find(x=>x.id===id); if(!it) return;
-  const before=state.prog[it.id]?{...state.prog[it.id]}:null;
-  const p={...prog(it)};p.started=p.started||now();p.done=now();state.prog[it.id]=p;save();render();
-  toast(`${it.plate||"Intervenția"} finalizată`,()=>{if(before)state.prog[it.id]=before;else delete state.prog[it.id];save();render();});
+  trimite(it,"finalizat");
+  toast(`${it.plate||"Intervenția"} finalizată`,()=>trimite(it,"anuleaza"));
 }
 function toggleRfr(id){
   const it=ITEMS.find(x=>x.id===id); if(!it) return;
   const on=!rfrOk(it);
-  if(on===(it.r.rfr==="facut")) delete state.rfr[it.id]; else state.rfr[it.id]=on;
-  save();render();toast(on?`RFR făcut la ${it.plate||"predare"}`:`RFR anulat la ${it.plate||"predare"}`);
+  trimite(it,"rfr",on);
+  toast(on?`RFR făcut la ${it.plate||"predare"}`:`RFR anulat la ${it.plate||"predare"}`);
 }
 
 // ---------- Prima pornire ----------
