@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Program Oradea</title>
+<meta name="theme-color" content="#0a0e17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Program">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* Limbajul vizual din Centralizator RCA: doar temă închisă, Plus Jakarta Sans, degradeul de brand, carduri de sticlă. */
+:root{
+  color-scheme:dark;
+  --bg:#0a0e17; --bg-deep:#070b14; --surface:#10172a; --surface-3:#1a2335; --line:#253150; --line-soft:#1c273f;
+  --fg:#f1f5f9; --muted:#94a3b8;
+  --predare:#22c55e; --predare-bg:rgba(34,197,94,.14);
+  --preluare:#3b82f6; --preluare-bg:rgba(59,130,246,.16);
+  --transfer:#f59e0b; --transfer-bg:rgba(245,158,11,.15);
+  --service:#ff4d6d; --service-bg:rgba(255,77,109,.15);
+  --nota:#94a3b8; --nota-bg:rgba(148,163,184,.12);
+  --rfr:#ff4fff; --on-ok:#052e16;
+  --brand-gradient:linear-gradient(110deg,#2563eb 0%,#7c3aed 45%,#0ea5e9 75%,#2563eb 100%);
+  --card-gradient:linear-gradient(165deg,#15224a 0%,#101a36 55%,#0e1530 100%);
+  --shadow:0 0 0 1px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06),0 10px 28px -16px rgba(0,0,0,.9);
+  --f-ui:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:15px;line-height:1.4;overscroll-behavior:none;
+  background-image:radial-gradient(420px 320px at 0% 0%,rgba(37,99,235,.2),transparent 70%),radial-gradient(380px 320px at 100% 100%,rgba(124,58,237,.18),transparent 70%)}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation}
+button,.card,.act{-webkit-user-select:none;user-select:none}
+:focus-visible{outline:2px solid #60a5fa;outline-offset:2px}
+[hidden]{display:none!important}
+@keyframes newGrad{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes btnShine{0%,55%{left:-40%}85%,100%{left:120%}}
+@keyframes rfrRun{to{transform:translateX(-50%)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.app{position:relative;height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden}
+
+/* Antet */
+.top{background:rgba(7,11,20,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line-soft);
+  padding:calc(var(--sat) + 12px) 16px 12px;display:flex;flex-direction:column;gap:11px}
+.top-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.01em;min-width:0}
+.brand small{display:block;font-weight:500;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-actions{display:flex;align-items:center;gap:8px;flex:none}
+.icon-btn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--muted)}
+.icon-btn svg{width:18px;height:18px}
+.icon-btn.loading svg{animation:spin .9s linear infinite}
+.me-btn{height:38px;border-radius:11px;border:1px solid var(--line);background:var(--surface-3);padding:0 12px;font-weight:800;font-size:14px}
+.search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 10px}
+.search:focus-within{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(37,99,235,.25)}
+.search svg{width:18px;height:18px;color:var(--muted);flex:none}
+.search input{flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font-size:16px;padding:10px 0;outline:none}
+.search input::placeholder{color:#64748b}
+.search input::-webkit-search-cancel-button{display:none}
+.search button{border:0;background:var(--surface-3);color:var(--muted);width:26px;height:26px;border-radius:50%;font-size:17px;line-height:1;flex:none}
+.days{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+.days::-webkit-scrollbar{display:none}
+.day{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:6px 10px;text-align:center;min-width:62px}
+.day b{display:block;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.day span{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.day.azi span{color:#93c5fd}
+.day[aria-pressed="true"]{border-color:transparent;background-image:var(--brand-gradient);background-size:250% 100%;color:#fff;box-shadow:0 8px 20px -10px rgba(124,58,237,.9)}
+.day[aria-pressed="true"] span{color:inherit;opacity:.85}
+.seg{display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:3px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:7px;font-weight:700;font-size:13.5px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface-3);color:var(--fg);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 0 1px var(--line)}
+.searching .days,.searching .seg{opacity:.35;pointer-events:none}
+.banner-err{background:var(--service-bg);color:#ffb3c1;border:1px solid rgba(255,77,109,.35);border-radius:10px;padding:8px 10px;font-size:13px;font-weight:600}
+
+/* Listă */
+.list{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 12px calc(var(--sab) + 28px);display:flex;flex-direction:column;gap:12px}
+.list>*{flex:none}
+.count{font-size:11px;color:var(--muted);padding:0 4px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.card{position:relative;display:grid;grid-template-columns:56px 1fr;gap:10px;text-align:left;width:100%;cursor:pointer;
+  background:var(--card-gradient);border:1px solid var(--line);border-radius:16px;padding:12px 12px 12px 14px;
+  box-shadow:var(--shadow),0 0 22px -14px var(--t);overflow:hidden}
+.card::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:var(--t);box-shadow:0 0 12px var(--t)}
+.card:active{transform:scale(.99)}
+.card.done{opacity:.5}
+.card.done::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(45deg,rgba(34,197,94,.06) 0 8px,transparent 8px 16px)}
+.card.nota{grid-template-columns:1fr;cursor:default}
+.card.nota .where{white-space:normal}
+.time{font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;line-height:1.1}
+.time small{display:block;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--t);margin-top:4px}
+.day-tag{display:block;font-size:10px;font-weight:800;color:#93c5fd;letter-spacing:.04em;margin-bottom:2px}
+.body{min-width:0;display:flex;flex-direction:column;gap:6px}
+.row1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.who-line{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.where{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:10.5px;font-weight:800;letter-spacing:.04em;padding:3px 8px;border-radius:999px;background:var(--surface-3);color:var(--muted);white-space:nowrap;border:1px solid var(--line-soft)}
+.chip.rfr-no{background:var(--transfer-bg);color:var(--transfer);border-color:transparent}
+.chip.pay{background:var(--service-bg);color:var(--service);border-color:transparent}
+.chip.me{background:rgba(37,99,235,.22);color:#bfdbfe;border-color:rgba(96,165,250,.5)}
+.chip.st{background:var(--predare-bg);color:var(--predare);border-color:transparent}
+.chip.free{border:1px dashed var(--muted);background:transparent}
+.plate{display:inline-flex;align-items:center;border:1px solid #33415f;border-radius:7px;background:#070b14;color:#fff;
+  font-weight:800;font-size:13.5px;line-height:1;letter-spacing:.04em;padding:5px 8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.plate.big{font-size:24px;border-radius:10px;padding:8px 14px}
+.plate.none{border-style:dashed;background:transparent;color:var(--muted);font-weight:700}
+.rfr-btn{display:block;width:100%;margin-top:9px;border:1px solid #3a4560;background:#000;color:#fff;border-radius:8px;
+  padding:7px 0;font-weight:800;font-size:11px;letter-spacing:.08em}
+.rfr-btn[aria-pressed="true"]{background:var(--rfr);border-color:var(--rfr);color:#2a0030;box-shadow:0 0 14px -2px rgba(255,79,255,.8)}
+.card-take{position:relative;overflow:hidden;margin-top:4px;align-self:flex-end;border:0;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:800;color:#fff;
+  background-image:var(--brand-gradient);background-size:250% 100%;animation:newGrad 14s ease-in-out infinite;box-shadow:0 10px 26px -12px rgba(124,58,237,.9),0 0 0 1px rgba(0,0,0,.4)}
+.card-take::after,.take::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:35%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.38),transparent);transform:skewX(-18deg);animation:btnShine 6s ease-in-out infinite}
+.card-take.join{background:transparent;animation:none;color:#bfdbfe;box-shadow:inset 0 0 0 1.5px #3b82f6}
+.card-take.finish{background:var(--predare);animation:none;color:var(--on-ok);box-shadow:0 8px 20px -10px rgba(34,197,94,.9)}
+.card-take.join::after,.card-take.finish::after{display:none}
+.empty{text-align:center;color:var(--muted);padding:40px 20px}
+
+/* Detalii */
+.sheet{position:absolute;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.sheet.open{transform:none}
+.sheet-head{background:linear-gradient(180deg,var(--t-bg),transparent),var(--bg-deep);padding:calc(var(--sat) + 10px) 16px 18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line-soft)}
+.back{align-self:flex-start;border:0;background:transparent;font-weight:700;color:var(--muted);padding:6px 0;font-size:15px}
+.type-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--t)}
+.type-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
+.big-time{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.head-row{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.sheet-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px calc(var(--sab) + 22px);display:flex;flex-direction:column;gap:12px}
+.sheet-body>*{flex:none}
+.box{background:var(--card-gradient);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow)}
+.kv{display:grid;grid-template-columns:96px 1fr;gap:9px;font-size:13.5px;margin:0}
+.kv dt{color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding-top:2px}
+.kv dd{margin:0;font-weight:700;min-width:0;overflow-wrap:anywhere}
+.alert{background:var(--service-bg);color:#ffb3c1;border:1px solid rgba(255,77,109,.35);border-radius:12px;padding:10px 12px;font-weight:700;font-size:13.5px}
+.rfr-band{overflow:hidden;border-radius:10px;border:2px solid #111;background:#ffd21f;color:#111;box-shadow:0 0 22px -6px rgba(255,210,31,.6)}
+.rfr-track{display:flex;width:max-content;animation:rfrRun 12s linear infinite}
+.rfr-track span{flex:none;padding:9px 18px;font-weight:800;font-size:14px;letter-spacing:.08em;white-space:nowrap;border-right:2px dashed rgba(17,17,17,.35)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.act{display:flex;gap:8px;align-items:center;justify-content:center;text-decoration:none;border-radius:12px;padding:13px;font-weight:800;
+  background:var(--surface-3);border:1px solid var(--line);color:var(--fg);font-size:14.5px;text-align:center}
+.act.call{background:var(--predare);border-color:var(--predare);color:var(--on-ok);box-shadow:0 10px 24px -12px rgba(34,197,94,.9)}
+.act[aria-disabled="true"]{opacity:.4;pointer-events:none}
+.act svg{width:18px;height:18px;flex:none}
+.owner{font-size:14px;color:var(--muted)}
+.owner b{color:var(--fg)}
+.take{position:relative;overflow:hidden;width:100%;border:0;border-radius:12px;padding:14px;font-size:15px;font-weight:800;color:#fff;
+  background-image:var(--brand-gradient);background-size:250% 100%;animation:newGrad 14s ease-in-out infinite;box-shadow:0 10px 26px -12px rgba(124,58,237,.9)}
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.step{border:1px solid var(--line);background:var(--surface-3);border-radius:12px;padding:11px 4px;font-weight:800;font-size:13.5px;text-align:center}
+.step[aria-pressed="true"]{background:rgba(37,99,235,.25);border-color:#3b82f6;color:#dbeafe}
+.step small{display:block;font-weight:600;font-size:11px;opacity:.8;font-variant-numeric:tabular-nums}
+.link-btn{border:0;background:transparent;color:var(--muted);font-weight:700;font-size:13px;text-decoration:underline;align-self:center;padding:4px}
+.raw{font-size:12px;color:var(--muted);background:var(--bg-deep);border:1px solid var(--line-soft);border-radius:10px;padding:9px 11px;font-family:ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+.raw .rfr-on{color:var(--rfr);font-weight:700}
+.pax{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.pax li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line-soft)}
+.pax li:first-child{border-top:0;padding-top:2px}
+.pax b{display:block;font-size:14px}
+.pax small,.picker-row small{display:block;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+.pax-call{flex:none;text-decoration:none;font-weight:800;font-size:13px;color:var(--on-ok);background:var(--predare);border-radius:10px;padding:8px 12px}
+
+/* Alegerea numărului, mesaje */
+.picker{position:absolute;inset:0;z-index:25;background:rgba(3,6,12,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:flex-end}
+.picker-card{width:100%;background:#10172a;border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:16px 14px calc(var(--sab) + 16px);
+  display:flex;flex-direction:column;gap:8px;max-height:85%;overflow-y:auto}
+.picker-title{font-weight:800;font-size:16px;padding:0 4px 4px}
+.picker-row{display:flex;align-items:center;justify-content:space-between;gap:10px;text-decoration:none;color:var(--fg);
+  background:var(--surface-3);border:1px solid var(--line);border-radius:12px;padding:12px;font-weight:700;text-align:left;width:100%}
+.picker-row b{display:block;font-size:14.5px}
+.picker-row i{font-style:normal;font-weight:800;font-size:13px;color:var(--on-ok);background:var(--predare);border-radius:9px;padding:6px 11px}
+.picker-row[aria-pressed="true"]{border-color:#3b82f6;background:rgba(37,99,235,.2)}
+.picker-cancel{margin-top:4px;border:0;background:transparent;color:var(--muted);font-weight:700;padding:10px}
+.toast{position:absolute;left:50%;bottom:calc(var(--sab) + 22px);z-index:30;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+  background:#232d45;color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:11px 14px;font-weight:700;font-size:13.5px;
+  width:max-content;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.5);transition:opacity .25s,transform .25s}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{margin-left:12px;border:0;background:transparent;color:#93c5fd;font-weight:800;text-decoration:underline;padding:0}
+
+/* Prima pornire */
+.setup{position:absolute;inset:0;z-index:40;background:var(--bg);overflow-y:auto;padding:calc(var(--sat) + 40px) 22px calc(var(--sab) + 30px);display:flex;flex-direction:column;gap:18px}
+.setup img{width:76px;height:76px;border-radius:20px;box-shadow:0 12px 30px -12px rgba(124,58,237,.8)}
+.setup h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
+.setup p{margin:0;color:var(--muted)}
+.setup label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:13px;color:var(--muted)}
+.setup input{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px;font-size:16px;color:var(--fg);font-family:ui-monospace,Menlo,Consolas,monospace}
+.people{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.people button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 4px;font-weight:800}
+.people button[aria-pressed="true"]{border-color:transparent;background-image:var(--brand-gradient);background-size:250% 100%;color:#fff}
+.setup .err{color:#ffb3c1;font-weight:700;font-size:13.5px}
+@media (prefers-reduced-motion:reduce){.sheet,.toast{transition:none}.rfr-track,.take,.card-take,.take::after,.card-take::after,.icon-btn.loading svg{animation:none}}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="top">
+    <div class="top-row">
+      <div class="brand">Program Oradea<small id="subtitle">Se încarcă…</small></div>
+      <div class="top-actions">
+        <button class="icon-btn" id="refresh" type="button" aria-label="Reîncarcă programul">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+        </button>
+        <button class="me-btn" id="meBtn" type="button" aria-label="Schimbă colegul"></button>
+      </div>
+    </div>
+    <div class="banner-err" id="err" hidden></div>
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Caută: nr. auto, nume, RZO, telefon…" autocomplete="off" aria-label="Caută intervenții">
+      <button id="qClear" type="button" aria-label="Șterge căutarea" hidden>×</button>
+    </div>
+    <div class="days" id="days" role="group" aria-label="Ziua"></div>
+    <div class="seg" role="group" aria-label="Filtru">
+      <button data-f="mine" type="button" aria-pressed="true">Ale mele</button>
+      <button data-f="free" type="button" aria-pressed="false">Libere</button>
+      <button data-f="all" type="button" aria-pressed="false">Toate</button>
+    </div>
+  </header>
+
+  <main class="list" id="list"></main>
+  <section class="sheet" id="sheet" aria-label="Detalii intervenție"></section>
+  <div class="picker" id="picker" hidden></div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <section class="setup" id="setup" hidden>
+    <img src="icons/icon-192.png" alt="">
+    <h1>Program Oradea</h1>
+    <p>Introdu cheia de acces primită de la birou și alege-ți numele. Le introduci o singură dată pe acest telefon.</p>
+    <label>Cheia de acces
+      <input id="setupKey" type="text" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ex. 82a7…">
+    </label>
+    <div>
+      <div style="font-weight:700;font-size:13px;color:var(--muted);margin-bottom:6px">Cine ești?</div>
+      <div class="people" id="setupPeople"></div>
+    </div>
+    <div class="err" id="setupErr" hidden></div>
+    <button class="take" id="setupGo" type="button">Intră</button>
+  </section>
+</div>
+
+<script>
+// Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
+
+const PEOPLE=[["ANGEL","Angel"],["BOGDAN","Bogdan"],["FILIP","Filip"],["GEORGE","George"],["IULIAN","Iulian"],["RARES","Rareș"],["SEBI","Sebi"],["URSU","Ursu"],["VLAD","Vlad"]];
+const TYPES={
+  predare:{label:"Predare",c:"var(--predare)",bg:"var(--predare-bg)"},
+  preluare:{label:"Preluare",c:"var(--preluare)",bg:"var(--preluare-bg)"},
+  transfer:{label:"Transfer",c:"var(--transfer)",bg:"var(--transfer-bg)"},
+  service:{label:"Service",c:"var(--service)",bg:"var(--service-bg)"},
+  nota:{label:"Notă",c:"var(--nota)",bg:"var(--nota-bg)"}
+};
+const ZILE_SAPT=["Dum","Lun","Mar","Mie","Joi","Vin","Sâm"];
+const ZILE_LUNG=["Duminică","Luni","Marți","Miercuri","Joi","Vineri","Sâmbătă"];
+
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const state={
+  key:store.get("po.key",""), me:store.get("po.me",""), filter:store.get("po.filter","mine"), day:null, q:"",
+  data:store.get("po.data",null), loading:false,
+  // Statusuri puse din aplicație. În pilot rămân pe acest telefon; la etapa 4 se sincronizează pentru toți.
+  assign:store.get("po.assign",{}), prog:store.get("po.prog",{}), rfr:store.get("po.rfr",{})
+};
+const save=()=>{store.set("po.assign",state.assign);store.set("po.prog",state.prog);store.set("po.rfr",state.rfr)};
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pad=n=>String(n).padStart(2,"0");
+const isoAzi=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+const now=()=>{const d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())};
+const telHref=t=>"tel:"+String(t).replace(/[^\d+]/g,"");
+const navHref=q=>"https://www.google.com/maps/dir/?api=1&travelmode=driving&destination="+encodeURIComponent(q);
+const routeHref=st=>st.length<2?navHref(st[0])
+  :navHref(st[st.length-1])+"&waypoints="+st.slice(0,-1).map(encodeURIComponent).join("%7C");
+const plate=(p,big)=>p?`<span class="plate${big?" big":""}">${esc(p)}</span>`:`<span class="plate none${big?" big":""}">fără nr.</span>`;
+const compact=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[\s.\-\/()+,]/g,"");
+const numeAfisat=cod=>(PEOPLE.find(p=>p[0]===cod)||[cod,cod])[1];
+
+// ---------- Datele ----------
+let ITEMS=[], DAYS=[];
+function pregateste(){
+  ITEMS=[];DAYS=[];
+  if(!state.data||!state.data.zile) return;
+  state.data.zile.forEach(z=>{
+    const d=new Date(z.data+"T12:00:00");
+    const zi={id:z.data,dow:ZILE_SAPT[d.getDay()],lung:ZILE_LUNG[d.getDay()],d:pad(d.getDate())+"."+pad(d.getMonth()+1),items:[]};
+    const vazute={};
+    z.interventii.forEach(r=>{
+      let id=[z.data,r.ora||"",r.nrAuto||"",r.rezervare||"",r.tip].join("|");
+      vazute[id]=(vazute[id]||0)+1; if(vazute[id]>1) id+="#"+vazute[id];
+      const it={
+        id, r, dayId:z.data, dayD:zi.d, type:TYPES[r.tip]?r.tip:"service",
+        t:r.ora?(r.oraPana?r.ora+"–"+r.oraPana:r.ora):(r.oraNesigura?"??:??":""),
+        plate:r.nrAuto, client:r.client, company:r.firma,
+        contacts:(r.contacte||[]).map(c=>({n:c.nume,t:c.tel,a:c.afisat})),
+        info:[r.clasa?"Clasa "+r.clasa:null,r.implicate?"VI "+r.implicate.join(", "):null].filter(Boolean).join(" · ")||null,
+        loc:r.loc, from:r.de_la, to:r.pana_la, map:r.harta||[], flight:r.zbor, res:r.rezervare,
+        pay:r.plata, paid:r.platit, notes:r.note||[], who:r.colegi||[], ok:!!r.ok, urgent:!!r.urgent, raw:r.raw
+      };
+      it.hay=compact([it.raw,it.client,it.company,it.from,it.to,(it.contacts||[]).map(c=>c.n+" "+c.t).join(" ")].join(" "));
+      zi.items.push(it);ITEMS.push(it);
+    });
+    DAYS.push(zi);
+  });
+  if(!state.day||!DAYS.some(d=>d.id===state.day)){
+    const azi=isoAzi();
+    state.day=(DAYS.find(d=>d.id===azi)||DAYS.find(d=>d.id>azi)||DAYS[DAYS.length-1]||{}).id||null;
+  }
+}
+
+async function incarca(manual){
+  if(!state.key||state.loading) return;
+  state.loading=true;$("#refresh").classList.add("loading");
+  try{
+    const r=await fetch(SCRIPT_URL+"?k="+encodeURIComponent(state.key),{cache:"no-store"});
+    const j=await r.json();
+    if(j.eroare){
+      if(/acces/i.test(j.eroare)){ arataSetup("Cheia nu mai e valabilă. Introdu-o din nou."); return; }
+      throw new Error(j.eroare);
+    }
+    state.data=j;store.set("po.data",j);
+    state.sync=Date.now();store.set("po.sync",state.sync);
+    $("#err").hidden=true;
+    pregateste();renderDays();render();
+    if(manual) toast("Program actualizat");
+  }catch(e){
+    $("#err").hidden=false;
+    $("#err").textContent=state.data?"Fără legătură cu programul. Afișez ultima variantă primită.":"Nu pot încărca programul. Verifică semnalul și apasă ⟳.";
+  }finally{state.loading=false;$("#refresh").classList.remove("loading");subtitlu();}
+}
+
+function subtitlu(){
+  if(!state.data){$("#subtitle").textContent=state.loading?"Se încarcă…":"Fără date";return;}
+  const s=state.sync||store.get("po.sync",0);
+  const min=s?Math.round((Date.now()-s)/60000):null;
+  $("#subtitle").textContent=(min===null?"Ultima variantă salvată":min<1?"Sincronizat acum":"Sincronizat acum "+min+" min")+" · "+numeAfisat(state.me);
+}
+
+// ---------- Statusuri ----------
+const who=it=>state.assign[it.id]??it.who;
+const prog=it=>state.prog[it.id]||{};
+const isDone=it=>!!prog(it).done||(it.ok&&!(it.id in state.assign)&&!(it.id in state.prog));
+const rfrOk=it=>it.id in state.rfr?state.rfr[it.id]:it.r.rfr==="facut";
+const touched=it=>it.id in state.assign||it.id in state.prog||it.id in state.rfr;
+
+const NAMES="BOGDAN|PATCAS|SEBI|BRATU|ANGEL|LASCU|RARES|VLAD|FILIP|MIHALI|IULIAN|IUTI|MLADIN|URSU|VID|CIPRI|LUCIAN|COLAB|GEO(?:RGE)?(?:\\s*(?:URSU|U|VID|V|X2)\\.?)?";
+const TAIL=new RegExp("(?:\\s*[\\/+]?\\s*(?:"+NAMES+")\\.?)+\\s*(?:OK!?)?\\s*$","i");
+function docLine(it){
+  let txt=it.raw,tail="";
+  if(it.id in state.assign||it.id in state.prog){
+    txt=it.raw.replace(TAIL,"").replace(/\s+$/,"");
+    const w=who(it);
+    if(w.length) tail=" <b style='color:var(--predare)'>"+esc(w.join("/")+(isDone(it)?" OK!":""))+"</b>";
+  }
+  let h=esc(txt);
+  if(it.type==="predare"&&/RFR/.test(h)) h=h.replace("RFR",`<span class="${rfrOk(it)?"rfr-on":""}">RFR</span>`);
+  return h+tail;
+}
+
+function chips(it){
+  const c=[],w=who(it),p=prog(it);
+  if(isDone(it)) c.push(`<span class="chip st">✓ Finalizat${p.done?" "+p.done:""}</span>`);
+  else if(p.started) c.push(`<span class="chip st">Pornit ${esc(p.started)}</span>`);
+  if(it.type==="predare"&&!rfrOk(it)) c.push(`<span class="chip rfr-no">Lipsă RFR</span>`);
+  if(it.pay) c.push(`<span class="chip${it.paid?"":" pay"}">${esc(it.pay)}</span>`);
+  if(it.urgent) c.push(`<span class="chip pay">Urgent</span>`);
+  if(!w.length) c.push(`<span class="chip free">Liberă</span>`);
+  else c.push(...w.map(x=>`<span class="chip${x===state.me?" me":""}">${esc(numeAfisat(x))}</span>`));
+  return c.join("");
+}
+function line2(it){
+  if(it.type==="transfer") return [it.from,it.to].filter(Boolean).join(" → ")||it.raw;
+  if(it.type==="service"||it.type==="nota") return it.raw.replace(/^\s*[\d:?.\-–!]+\s*[-,]?\s*/,"").replace(TAIL,"");
+  return [it.company,it.loc].filter(Boolean).join(" · ");
+}
+
+// ---------- Afișare ----------
+function renderDays(){
+  const azi=isoAzi();
+  $("#days").innerHTML=DAYS.map(d=>`<button class="day${d.id===azi?" azi":""}" type="button" data-id="${d.id}" aria-pressed="${d.id===state.day}"><span>${d.id===azi?"Azi":d.dow}</span><b>${d.d}</b></button>`).join("");
+  const sel=$("#days .day[aria-pressed=true]");
+  if(sel) sel.scrollIntoView({inline:"center",block:"nearest"});
+}
+
+function card(it,searching){
+  const T=TYPES[it.type];
+  if(it.type==="nota") return `<div class="card nota" style="--t:${T.c}"><div class="body">
+      <div class="time" style="font-size:12px">${searching?`<span class="day-tag">${esc(it.dayD)}</span>`:""}<small style="margin:0">Notă${it.t?" · "+esc(it.t):""}</small></div>
+      <div class="where">${esc(it.raw)}</div></div></div>`;
+  const w=who(it),mine=w.includes(state.me),done=isDone(it);
+  const btn=done?"":mine?`<button class="card-take finish" type="button" data-finish="${it.id}">✓ Finalizat</button>`
+    :w.length?`<button class="card-take join" type="button" data-take="${it.id}">Mă adaug și eu</button>`
+    :`<button class="card-take" type="button" data-take="${it.id}">Iau eu intervenția</button>`;
+  return `<div class="card${done?" done":""}" role="button" tabindex="0" data-id="${it.id}" style="--t:${T.c}">
+    <div class="time">${searching?`<span class="day-tag">${esc(it.dayD)}</span>`:""}${esc(it.t||"––:––")}<small>${T.label}</small>
+      ${it.type==="predare"?`<button class="rfr-btn" type="button" data-rfr="${it.id}" aria-pressed="${rfrOk(it)}">RFR</button>`:""}</div>
+    <div class="body">
+      <div class="row1">${plate(it.plate)}<span class="who-line">${esc(it.client||"")}</span></div>
+      <div class="where">${esc(line2(it))}</div>
+      <div class="chips">${chips(it)}</div>
+      ${btn}
+    </div></div>`;
+}
+
+function render(){
+  const q=state.q.trim(),searching=q.length>0;
+  $("#app").classList.toggle("searching",searching);
+  subtitlu();
+  if(!DAYS.length){$("#list").innerHTML=`<div class="empty">${state.loading?"Se încarcă programul…":"Programul nu are zile de afișat."}</div>`;return;}
+  const d=DAYS.find(x=>x.id===state.day)||DAYS[0];
+  let items;
+  if(searching){
+    const toks=q.split(/\s+/).map(compact).filter(Boolean);
+    items=ITEMS.filter(it=>toks.every(t=>it.hay.includes(t)||compact(who(it).join(" ")).includes(t)));
+  }else{
+    items=d.items.slice();
+    if(state.filter==="mine") items=items.filter(it=>who(it).includes(state.me));
+    if(state.filter==="free") items=items.filter(it=>it.type!=="nota"&&!who(it).length&&!isDone(it));
+  }
+  items.sort((a,b)=>a.dayId!==b.dayId?(a.dayId<b.dayId?-1:1):((a.t||"99")<(b.t||"99")?-1:(a.t||"99")>(b.t||"99")?1:0));
+  const todo=items.filter(it=>it.type!=="nota"&&!isDone(it)).length;
+  const head=searching?`${items.length} rezultat${items.length===1?"":"e"} pentru „${esc(q)}”`:`${d.lung} ${d.d} · ${items.length} intervenții · ${todo} de făcut`;
+  const empty=searching?`Nimic găsit pentru „${esc(q)}”.`
+    :{mine:`Nicio intervenție pentru ${esc(numeAfisat(state.me))} în ${d.d}.<br>Vezi „Libere” ca să-ți iei una.`,
+      free:`Toate intervențiile din ${d.d} au pe cineva.`,all:`Nicio intervenție în ${d.d}.`}[state.filter];
+  $("#list").innerHTML=items.length?`<div class="count">${head}</div>`+items.map(it=>card(it,searching)).join(""):`<div class="count">${head}</div><div class="empty">${empty}</div>`;
+}
+
+const contacts=it=>it.contacts.length?it.contacts:[];
+function openDetail(id,synced){
+  const it=ITEMS.find(x=>x.id===id); if(!it) return;
+  const T=TYPES[it.type], w=who(it), p=prog(it), mine=w.includes(state.me), done=isDone(it);
+  const stops=it.map, cs=contacts(it), callable=cs.filter(c=>c.t);
+  const rows=[
+    ["Client",it.client],["Firmă",it.company],["Telefon",callable.length===1?callable[0].a||callable[0].t:null],["Zbor",it.flight],
+    ["Detalii",it.info],[it.to?"Oprirea 1":"Adresa",it.from],[it.from?"Oprirea 2":"Adresa",it.to],
+    ["Locație",it.type!=="transfer"?it.loc:null],["Rezervare",it.res],["Plată",it.pay]
+  ].filter(r=>r[1]);
+  let status;
+  if(done) status=`<div class="box"><div class="owner">✓ Finalizată de <b>${esc(w.map(numeAfisat).join(", ")||"—")}</b>${p.done?" la "+p.done:""}</div>
+      ${p.done?`<button class="link-btn" type="button" data-act="undo">Anulează finalizarea</button>`:""}</div>`;
+  else if(!mine) status=`<div class="box">${w.length?`<div class="owner">Alocată lui <b>${esc(w.map(numeAfisat).join(", "))}</b></div>`:`<div class="owner">Nimeni nu și-a luat-o încă.</div>`}
+      <button class="take" type="button" data-act="take">${w.length?"Mă adaug și eu":"Iau eu intervenția"}</button></div>`;
+  else status=`<div class="box"><div class="owner">Intervenția e a ta</div>
+      <div class="steps"><button class="step" type="button" data-act="start" aria-pressed="${!!p.started}">Am pornit${p.started?`<small>${p.started}</small>`:""}</button>
+      <button class="step" type="button" data-act="done">✓ Finalizat</button></div>
+      <button class="link-btn" type="button" data-act="drop">Renunț la intervenție</button></div>`;
+  const sh=$("#sheet");
+  sh.style.setProperty("--t",T.c);sh.style.setProperty("--t-bg",T.bg);
+  sh.innerHTML=`
+   <div class="sheet-head">
+     <button class="back" type="button" id="back">‹ Înapoi</button>
+     <div class="head-row">
+       <div><span class="type-badge">${T.label}${it.type==="predare"?(rfrOk(it)?" · RFR gata":" · Lipsă RFR"):""}</span>
+       <div class="big-time">${esc(it.t||"Oră nestabilită")}</div></div>
+       ${plate(it.plate,true)}
+     </div>
+   </div>
+   <div class="sheet-body">
+     ${it.type==="predare"&&!rfrOk(it)?`<div class="rfr-band" role="status" aria-label="Lipsă RFR"><div class="rfr-track" aria-hidden="true">${"<span>⚠ LIPSĂ RFR</span>".repeat(12)}</div></div>`:""}
+     ${it.notes.length?`<div class="alert">${it.notes.map(esc).join(" · ")}</div>`:""}
+     ${status}
+     <div class="actions">
+       <a class="act call" id="callBtn" href="${callable.length===1?telHref(callable[0].t):"#"}" aria-disabled="${!callable.length}">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
+         ${callable.length>1?`Sună · ${callable.length} nr.`:"Sună clientul"}</a>
+       <a class="act" href="${stops.length?routeHref(stops):"#"}" target="_blank" rel="noopener" aria-disabled="${!stops.length}">
+         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+         ${stops.length>1?"Traseu · 2 opriri":stops.length?"Navighează":"La sediu"}</a>
+     </div>
+     ${rows.length?`<dl class="box kv">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl>`:""}
+     ${cs.length>1?`<div class="box"><div class="type-badge" style="color:var(--muted)">Pasageri · ${cs.length}</div>
+       <ul class="pax">${cs.map(c=>`<li><span><b>${esc(c.n||"Fără nume")}</b><small>${c.t?esc(c.a||c.t):"fără telefon în program"}</small></span>
+         ${c.t?`<a class="pax-call" href="${telHref(c.t)}">Sună</a>`:""}</li>`).join("")}</ul></div>`:""}
+     <div style="display:flex;flex-direction:column;gap:6px">
+       <div class="count" style="padding:0">Rândul din program</div>
+       <div class="raw">${docLine(it)}</div>
+       ${synced&&touched(it)?`<div class="count" style="padding:0;text-transform:none;letter-spacing:0">Salvat pe acest telefon. Documentul nu se modifică încă.</div>`:""}
+     </div>
+   </div>`;
+  sh.classList.add("open");
+  $("#back").onclick=()=>sh.classList.remove("open");
+  sh.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>act(it,b.dataset.act));
+  $("#callBtn").addEventListener("click",e=>{if(callable.length>1){e.preventDefault();openPicker(callable);}});
+}
+
+function openPicker(list){
+  const p=$("#picker");
+  p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Pe cine suni?"><div class="picker-title">Pe cine suni?</div>
+    ${list.map(c=>`<a class="picker-row" href="${telHref(c.t)}"><span><b>${esc(c.n||"Fără nume")}</b><small>${esc(c.a||c.t)}</small></span><i>Sună</i></a>`).join("")}
+    <button class="picker-cancel" type="button">Renunță</button></div>`;
+  p.hidden=false;
+  p.querySelectorAll(".picker-row").forEach(a=>a.addEventListener("click",()=>{p.hidden=true;}));
+  p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
+  p.onclick=e=>{if(e.target===p)p.hidden=true;};
+}
+
+function pickPerson(){
+  const p=$("#picker");
+  p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Cine ești?"><div class="picker-title">Cine ești?</div>
+    ${PEOPLE.map(([c,n])=>`<button class="picker-row" type="button" data-c="${c}" aria-pressed="${c===state.me}"><span><b>${n}</b></span></button>`).join("")}
+    <button class="picker-cancel" type="button">Renunță</button></div>`;
+  p.hidden=false;
+  p.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{state.me=b.dataset.c;store.set("po.me",state.me);$("#meBtn").textContent=numeAfisat(state.me);p.hidden=true;render();});
+  p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
+  p.onclick=e=>{if(e.target===p)p.hidden=true;};
+}
+
+// ---------- Acțiuni ----------
+function act(it,a){
+  const w=[...who(it)],p={...prog(it)};
+  if(a==="take"){if(!w.includes(state.me))w.push(state.me);state.assign[it.id]=w;}
+  if(a==="drop"){state.assign[it.id]=w.filter(x=>x!==state.me);delete p.started;}
+  if(a==="start"){p.started=p.started?undefined:now();}
+  if(a==="done"){p.started=p.started||now();p.done=now();}
+  if(a==="undo"){delete p.done;}
+  if(Object.values(p).some(Boolean)) state.prog[it.id]=p; else delete state.prog[it.id];
+  save();render();openDetail(it.id,true);
+}
+let toastTimer=null;
+function toast(msg,undo){
+  const t=$("#toast");t.textContent=msg;
+  if(undo){const b=document.createElement("button");b.type="button";b.textContent="Anulează";b.onclick=()=>{undo();t.classList.remove("show");};t.appendChild(b);}
+  t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),undo?5000:2600);
+}
+function takeFromCard(id){
+  const it=ITEMS.find(x=>x.id===id); if(!it) return;
+  const w=[...who(it)];if(!w.includes(state.me))w.push(state.me);state.assign[it.id]=w;save();render();
+  toast(w.length>1?`Te-ai adăugat la ${it.plate||"intervenție"}`:`${it.plate||"Intervenția"} e a ta`);
+}
+function finishFromCard(id){
+  const it=ITEMS.find(x=>x.id===id); if(!it) return;
+  const before=state.prog[it.id]?{...state.prog[it.id]}:null;
+  const p={...prog(it)};p.started=p.started||now();p.done=now();state.prog[it.id]=p;save();render();
+  toast(`${it.plate||"Intervenția"} finalizată`,()=>{if(before)state.prog[it.id]=before;else delete state.prog[it.id];save();render();});
+}
+function toggleRfr(id){
+  const it=ITEMS.find(x=>x.id===id); if(!it) return;
+  const on=!rfrOk(it);
+  if(on===(it.r.rfr==="facut")) delete state.rfr[it.id]; else state.rfr[it.id]=on;
+  save();render();toast(on?`RFR făcut la ${it.plate||"predare"}`:`RFR anulat la ${it.plate||"predare"}`);
+}
+
+// ---------- Prima pornire ----------
+function arataSetup(msg){
+  $("#setup").hidden=false;
+  $("#setupKey").value=state.key||"";
+  let sel=state.me;
+  const draw=()=>{$("#setupPeople").innerHTML=PEOPLE.map(([c,n])=>`<button type="button" data-c="${c}" aria-pressed="${c===sel}">${n}</button>`).join("");};
+  draw();
+  $("#setupPeople").onclick=e=>{const b=e.target.closest("[data-c]");if(b){sel=b.dataset.c;draw();}};
+  $("#setupErr").hidden=!msg;$("#setupErr").textContent=msg||"";
+  $("#setupGo").onclick=async()=>{
+    const k=$("#setupKey").value.trim().replace(/\s+/g,"");
+    if(!k){$("#setupErr").hidden=false;$("#setupErr").textContent="Introdu cheia de acces.";return;}
+    if(!sel){$("#setupErr").hidden=false;$("#setupErr").textContent="Alege-ți numele.";return;}
+    $("#setupGo").textContent="Verific…";
+    try{
+      const j=await (await fetch(SCRIPT_URL+"?k="+encodeURIComponent(k),{cache:"no-store"})).json();
+      if(j.eroare) throw new Error(/acces/i.test(j.eroare)?"Cheia nu e corectă.":j.eroare);
+      state.key=k;state.me=sel;state.data=j;state.sync=Date.now();
+      store.set("po.key",k);store.set("po.me",sel);store.set("po.data",j);store.set("po.sync",state.sync);
+      $("#setup").hidden=true;$("#meBtn").textContent=numeAfisat(sel);
+      pregateste();renderDays();render();
+    }catch(e){
+      $("#setupErr").hidden=false;$("#setupErr").textContent=e.message&&!/fetch|network|load/i.test(e.message)?e.message:"Nu mă pot conecta. Verifică semnalul.";
+    }finally{$("#setupGo").textContent="Intră";}
+  };
+}
+
+// ---------- Evenimente ----------
+document.querySelectorAll(".seg button").forEach(b=>{
+  b.setAttribute("aria-pressed",b.dataset.f===state.filter);
+  b.onclick=()=>{state.filter=b.dataset.f;store.set("po.filter",state.filter);document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));render();};
+});
+$("#days").onclick=e=>{const b=e.target.closest(".day");if(!b)return;state.day=b.dataset.id;renderDays();render();$("#list").scrollTop=0;};
+$("#list").onclick=e=>{
+  const t=e.target.closest("[data-take]");if(t){takeFromCard(t.dataset.take);return;}
+  const f=e.target.closest("[data-finish]");if(f){finishFromCard(f.dataset.finish);return;}
+  const r=e.target.closest("[data-rfr]");if(r){toggleRfr(r.dataset.rfr);return;}
+  const c=e.target.closest(".card[data-id]");if(c)openDetail(c.dataset.id);
+};
+$("#q").addEventListener("input",e=>{state.q=e.target.value;$("#qClear").hidden=!state.q;render();});
+$("#qClear").onclick=()=>{state.q="";$("#q").value="";$("#qClear").hidden=true;render();};
+$("#refresh").onclick=()=>incarca(true);
+$("#meBtn").onclick=pickPerson;
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)incarca();});
+setInterval(()=>{if(!document.hidden)incarca();},60000);
+setInterval(subtitlu,30000);
+
+// Pornire. Cheia se poate da și printr-un link de configurare: ...#k=CHEIA (nu ajunge la server).
+const mk=/[#&]k=([0-9a-f]{16,})/i.exec(location.hash);
+if(mk){state.key=mk[1];store.set("po.key",state.key);history.replaceState(null,"",location.pathname);}
+$("#meBtn").textContent=numeAfisat(state.me)||"Eu";
+pregateste();renderDays();render();
+if(!state.key||!state.me) arataSetup(); else incarca();
+
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Acest depozit e PUBLIC: aici stă doar aplicația. Niciodată date, chei sau programul.
+*.docx
+*.json
+!manifest.webmanifest
+.local/
