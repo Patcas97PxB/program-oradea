@@ -621,7 +621,7 @@ $("#qClear").onclick=()=>{state.q="";$("#q").value="";$("#qClear").hidden=true;r
 $("#refresh").onclick=()=>incarca(true);
 $("#meBtn").onclick=pickPerson;
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)incarca();});
-setInterval(()=>{if(!document.hidden)incarca();},20000);
+setInterval(()=>{if(!document.hidden)incarca();},10000);
 setInterval(subtitlu,30000);
 
 // Pornire. Cheia se poate da și printr-un link de configurare: ...#k=CHEIA (nu ajunge la server).
