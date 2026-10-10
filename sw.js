@@ -1,5 +1,5 @@
 // Ține aplicația disponibilă și fără semnal. Datele programului nu trec pe aici (vin direct de la scriptul Google).
-const VERSIUNE = 'po-v1';
+const VERSIUNE = 'po-v2';
 const FISIERE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

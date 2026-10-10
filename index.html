@@ -340,7 +340,9 @@ function subtitlu(){
   if(!state.data){$("#subtitle").textContent=state.loading?"Se încarcă…":"Fără date";return;}
   const s=state.sync||store.get("po.sync",0);
   const min=s?Math.round((Date.now()-s)/60000):null;
-  $("#subtitle").textContent=(min===null?"Ultima variantă salvată":min<1?"Sincronizat acum":"Sincronizat acum "+min+" min")+" · "+numeAfisat(state.me);
+  const dm=state.data.documentModificat?new Date(state.data.documentModificat):null;
+  const ora=dm?" · program "+pad(dm.getHours())+":"+pad(dm.getMinutes()):"";
+  $("#subtitle").textContent=(min===null?"Ultima variantă salvată":min<1?"Sincronizat acum":"Sincronizat acum "+min+" min")+ora+" · "+numeAfisat(state.me);
 }
 
 // ---------- Statusuri ----------
@@ -592,7 +594,7 @@ $("#qClear").onclick=()=>{state.q="";$("#q").value="";$("#qClear").hidden=true;r
 $("#refresh").onclick=()=>incarca(true);
 $("#meBtn").onclick=pickPerson;
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)incarca();});
-setInterval(()=>{if(!document.hidden)incarca();},60000);
+setInterval(()=>{if(!document.hidden)incarca();},20000);
 setInterval(subtitlu,30000);
 
 // Pornire. Cheia se poate da și printr-un link de configurare: ...#k=CHEIA (nu ajunge la server).
