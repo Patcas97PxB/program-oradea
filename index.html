@@ -37,7 +37,7 @@
 /* Fundalul acoperă tot ecranul, inclusiv sub bara de jos a iPhone-ului */
 html{height:100%;background:var(--bg)}
 html,body{margin:0}
-body{min-height:100%;min-height:100dvh}
+body{min-height:100%;min-height:var(--inaltime,100dvh)}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:15px;line-height:1.4;overscroll-behavior:none;
   background-image:radial-gradient(420px 320px at 0% 0%,rgba(37,99,235,.2),transparent 70%),radial-gradient(380px 320px at 100% 100%,rgba(124,58,237,.18),transparent 70%)}
 button,select,input{font:inherit;color:inherit}
@@ -298,7 +298,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "11.10 · v24";
+const VERSIUNE_APP = "11.10 · v25";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
 const FIREBASE = {
@@ -938,9 +938,13 @@ function potrivesteInaltimea(){
   const h=instalataPeEcran&&vertical?Math.max(window.innerHeight,screen.height):window.innerHeight;
   document.documentElement.style.setProperty("--inaltime",h+"px");
   state.ecran=window.innerHeight+"/"+screen.height+(instalataPeEcran?" inst.":"");
+  // iOS desenează partea de jos abia după o derulare: o facem noi, de 1 punct, și revenim
+  if(h>window.innerHeight) setTimeout(()=>{window.scrollTo(0,1);requestAnimationFrame(()=>window.scrollTo(0,0));},60);
 }
 potrivesteInaltimea();
 window.addEventListener("resize",potrivesteInaltimea);
+window.addEventListener("load",()=>setTimeout(potrivesteInaltimea,250));
+window.addEventListener("pageshow",()=>setTimeout(potrivesteInaltimea,250));
 window.addEventListener("orientationchange",()=>setTimeout(potrivesteInaltimea,300));
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)potrivesteInaltimea();});
 
