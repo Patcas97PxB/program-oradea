@@ -294,7 +294,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "11.10 · v20";
+const VERSIUNE_APP = "11.10 · v21";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
 const FIREBASE = {
@@ -454,7 +454,7 @@ function chips(it){
   else if(p.started) c.push(`<span class="chip st">Pornit ${esc(p.started)}${p.startedBy&&p.startedBy!==state.me?" · "+esc(numeAfisat(p.startedBy)):""}</span>`);
   if(it.urgent) c.push(`<span class="chip pay">Urgent</span>`);
   (it.r.numeNecunoscute||[]).forEach(n=>c.push(`<span class="chip pay" title="Nume care nu e în lista de agenți">? ${esc(n.text)}${n.sugestie?" → "+esc(numeAfisat(n.sugestie)):""}</span>`));
-  if(it.type==="predare"&&!rfrOk(it)) c.push(`<span class="chip rfr-no">Lipsă RFR</span>`);
+  // „Lipsă RFR” nu mai apare pe cartonaș: butonul RFR negru spune deja asta (în detalii rămâne banda galbenă)
   if(it.r.rca) c.push(`<span class="chip rca">RCA${it.r.rca.asigurator?" · "+esc(it.r.rca.asigurator):""}</span>`);
   if(!w.length) c.push(`<span class="chip free">Liberă</span>`);
   else c.push(...w.map(x=>`<span class="chip${x===state.me?" me":""}">${esc(numeAfisat(x))}</span>`));
