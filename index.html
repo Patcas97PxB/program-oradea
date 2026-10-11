@@ -119,6 +119,13 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .where{font-size:12.5px;color:var(--muted);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .c-mid .where.doua{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .where svg{width:12px;height:12px;vertical-align:-1px;margin-right:3px}
+.c-serv{flex:none;height:136px;display:flex;align-items:flex-start;gap:10px;padding:14px 14px 0 18px;border-bottom:1px dashed var(--line)}
+.c-task{flex:1;min-width:0;font-size:15px;font-weight:600;line-height:1.55;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.plate.mini{font-size:12px;vertical-align:1px;border-width:1px;border-radius:4px;margin:0 1px}
+.plate.mini i{font-size:6.5px;padding:0 2px 2px}
+.plate.mini b{padding:2px 5px 2px}
+.sheet-plates{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.task-mare{font-size:17px;font-weight:600;line-height:1.6}
 .c-foot{flex:none;margin-top:auto;height:50px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px 4px 18px}
 .c-foot .chips{flex-wrap:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
 .chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center;min-width:0}
@@ -298,7 +305,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "11.10 · v25";
+const VERSIUNE_APP = "11.10 · v26";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
 const FIREBASE = {
@@ -465,6 +472,19 @@ function chips(it){
   if(it.pay) c.push(`<span class="chip${it.paid?"":" pay"}">${esc(plataScurta(it.pay))}</span>`);
   return c.join("");
 }
+const RE_PLACUTA=/\b(?:B\s?\d{2,3}|[A-Z]{2}\s?\d{2})\s?[A-Z]{3}\b|\b[A-Z]{4}\d{3}\b|\b[A-Z]{3}-\d{3}\b/g;
+const placutaMica=p=>`<span class="plate mini"><i>RO</i><b>${esc(formatNr(p.replace(/[\s-]/g,"")))}</b></span>`;
+// „DE DUS LA PRO TYRES B384AUT” → „De dus la pro tyres [B 384 AUT]”: majusculele devin text normal, mașinile rămân plăcuțe
+function textSarcina(it){
+  let t=it.raw.replace(/^\s*[\d:?.\-–!]+\s*[-,]?\s*/,"").replace(tail(),"").replace(/^[\s\-–,]+|[\s\-–,]+$/g,"");
+  const litere=t.replace(/[^A-Za-zĂÂÎȘȚăâîșț]/g,""),mari=litere.replace(/[^A-ZĂÂÎȘȚ]/g,"").length;
+  const strigat=litere.length>6&&mari/litere.length>0.7;
+  let html="",ultim=0,m,primul=true;
+  RE_PLACUTA.lastIndex=0;
+  const bucata=x=>{let y=strigat?x.toLowerCase():x;if(primul&&y.trim()){y=y.replace(/^\s*[-–]\s*/," – ").replace(/^([\s–]*)([^\s–])/,(a,sp,c)=>sp+c.toUpperCase());primul=false;}return esc(y);};
+  while((m=RE_PLACUTA.exec(t))){html+=bucata(t.slice(ultim,m.index))+placutaMica(m[0]);ultim=m.index+m[0].length;}
+  return html+bucata(t.slice(ultim));
+}
 function line2(it){
   if(it.type==="transfer") return [it.from,it.to].filter(Boolean).join(" → ")||it.raw;
   if(it.type==="service"||it.type==="nota") return it.raw.replace(/^\s*[\d:?.\-–!]+\s*[-,]?\s*/,"").replace(tail(),"");
@@ -495,6 +515,13 @@ function card(it,searching){
     :`<button class="card-take" type="button" data-take="${it.id}">Iau eu intervenția</button>`;
   const rfr=it.type==="predare"?`<button class="rfr-btn" type="button" data-rfr="${it.id}" aria-pressed="${rfrOk(it)}">RFR</button>`:"";
   const unde=line2(it);
+  if(it.type==="service") return `<div class="card${done?" done":""}" role="button" tabindex="0" data-id="${it.id}" style="--t:${T.c}">
+    <div class="c-serv">
+      <div class="time">${searching?`<span class="day-tag">${esc(it.dayD)}</span>`:""}<b>${esc(it.t||"––:––")}</b><small>${T.label}</small>${it.res?`<span class="c-rez">${esc(it.res)}</span>`:""}</div>
+      <div class="c-task">${textSarcina(it)}</div>
+    </div>
+    <div class="c-foot"><div class="chips">${chips(it)}</div>${btn}</div>
+  </div>`;
   return `<div class="card${done?" done":""}" role="button" tabindex="0" data-id="${it.id}" style="--t:${T.c}">
     <div class="c-head">
       <div class="time">${searching?`<span class="day-tag">${esc(it.dayD)}</span>`:""}<b>${esc(it.t||"––:––")}</b><small>${T.label}</small>${it.res?`<span class="c-rez">${esc(it.res)}</span>`:""}</div>
@@ -557,11 +584,12 @@ function openDetail(id,synced){
      <div class="head-row">
        <div><span class="type-badge">${T.label}${it.type==="predare"?(rfrOk(it)?" · RFR gata":" · Lipsă RFR"):""}</span>
        <div class="big-time">${esc(it.t||"Oră nestabilită")}</div></div>
-       ${plate(it.plate,true)}
+       ${it.type==="service"?`<div class="sheet-plates">${[it.plate].concat(it.r.altNrAuto||[]).filter(Boolean).map(p=>plate(p)).join("")}</div>`:plate(it.plate,true)}
      </div>
    </div>
    <div class="sheet-body">
      ${it.type==="predare"&&!rfrOk(it)?`<div class="rfr-band" role="status" aria-label="Lipsă RFR"><div class="rfr-track" aria-hidden="true">${"<span>⚠ LIPSĂ RFR</span>".repeat(12)}</div></div>`:""}
+     ${it.type==="service"?`<div class="box task-mare">${textSarcina(it)}</div>`:""}
      ${it.notes.length?`<div class="alert">${it.notes.map(esc).join(" · ")}</div>`:""}
      ${status}
      <div class="actions">
