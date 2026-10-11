@@ -92,24 +92,29 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .list{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 12px calc(var(--sab) + 28px);display:flex;flex-direction:column;gap:12px}
 .list>*{flex:none}
 .count{font-size:11px;color:var(--muted);padding:0 4px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
-.card{position:relative;display:grid;grid-template-columns:56px 1fr;gap:10px;text-align:left;width:100%;cursor:pointer;
-  background:var(--card-gradient);border:1px solid var(--line);border-radius:16px;padding:12px 12px 12px 14px;
+/* Cartonașul „bilet”: sus ora + tipul și plăcuța cu rezervarea; linie punctată; clientul și adresa centrate; jos etichete + buton */
+.card{position:relative;display:block;text-align:left;width:100%;cursor:pointer;
+  background:var(--card-gradient);border:1px solid var(--line);border-radius:16px;padding:0;
   box-shadow:var(--shadow),0 0 22px -14px var(--t);overflow:hidden}
-.card::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:var(--t);box-shadow:0 0 12px var(--t)}
+.card::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px;border-radius:0 4px 4px 0;background:var(--t);box-shadow:0 0 12px var(--t)}
 .card:active{transform:scale(.99)}
 .card.done{opacity:.5}
 .card.done::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(45deg,rgba(34,197,94,.06) 0 8px,transparent 8px 16px)}
-.card.nota{grid-template-columns:1fr;cursor:default}
-.card.nota .where{white-space:normal}
-.time{font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;line-height:1.1;text-align:center}
-.time small{display:block;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--t);margin-top:4px}
+.card.nota{cursor:default;padding:12px 14px 12px 16px}
+.card.nota .where{-webkit-line-clamp:4}
+.c-head{display:flex;align-items:center;gap:10px;padding:12px 14px 11px 16px;border-bottom:1px dashed var(--line)}
+.time{flex:none;min-width:58px;font-weight:800;font-size:20px;font-variant-numeric:tabular-nums;line-height:1.05;text-align:center}
+.time small{display:block;font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--t);margin-top:4px}
 .day-tag{display:block;font-size:10px;font-weight:800;color:#93c5fd;letter-spacing:.04em;margin-bottom:2px}
-.body{min-width:0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:5px;padding-right:6px}
-.row1{display:flex;justify-content:center}
-.row1 .plate{font-size:17px;padding:6px 12px;border-radius:8px}
-.who-line{font-size:15px;font-weight:700;max-width:100%;overflow-wrap:anywhere}
+.c-plate{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:5px}
+.c-rez{font-size:11.5px;font-weight:800;letter-spacing:.06em;color:var(--muted);font-variant-numeric:tabular-nums}
+.c-mid{text-align:center;padding:10px 14px 4px 16px;display:flex;flex-direction:column;gap:3px;align-items:center}
+.who-line{font-size:15.5px;font-weight:700;max-width:100%;overflow-wrap:anywhere}
 .where{font-size:12.5px;color:var(--muted);max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-top:2px}
+.where svg{width:12px;height:12px;vertical-align:-1px;margin-right:3px}
+.c-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;padding:6px 12px 12px 16px}
+.c-foot .chips{justify-content:flex-start}
+.chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center;min-width:0}
 .chip{font-size:10.5px;font-weight:800;letter-spacing:.04em;padding:3px 8px;border-radius:999px;background:var(--surface-3);color:var(--muted);white-space:nowrap;border:1px solid var(--line-soft)}
 .chip.rfr-no{background:var(--transfer-bg);color:var(--transfer);border-color:transparent}
 .chip.pay{background:var(--service-bg);color:var(--service);border-color:transparent}
@@ -117,14 +122,19 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .chip.me{background:rgba(37,99,235,.22);color:#bfdbfe;border-color:rgba(96,165,250,.5)}
 .chip.st{background:var(--predare-bg);color:var(--predare);border-color:transparent}
 .chip.free{border:1px dashed var(--muted);background:transparent}
-.plate{display:inline-flex;align-items:center;border:1px solid #33415f;border-radius:7px;background:#070b14;color:#fff;
-  font-weight:800;font-size:13.5px;line-height:1;letter-spacing:.04em;padding:5px 8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
-.plate.big{font-size:24px;border-radius:10px;padding:8px 14px}
-.plate.none{border-style:dashed;background:transparent;color:var(--muted);font-weight:700}
-.rfr-btn{display:block;width:100%;margin-top:9px;border:1px solid #3a4560;background:#000;color:#fff;border-radius:8px;
-  padding:7px 0;font-weight:800;font-size:11px;letter-spacing:.08em}
+.plate{display:inline-flex;align-items:stretch;flex:none;white-space:nowrap;border:1.5px solid #0b0b0b;border-radius:6px;background:#fff;color:#0b0b0b;
+  font-weight:800;font-size:17px;line-height:1;letter-spacing:.06em;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.12)}
+.plate i{font-style:normal;background:#1b3fa6;color:#fff;font-size:8.5px;font-weight:700;letter-spacing:0;display:flex;align-items:flex-end;padding:0 3px 3px}
+.plate b{font-weight:800;padding:6px 9px 5px}
+.plate.big{font-size:26px;border-radius:8px}
+.plate.big i{font-size:11px;padding:0 5px 4px}
+.plate.big b{padding:8px 12px 7px}
+.plate.none{border:1.5px dashed var(--muted);background:transparent;color:var(--muted);font-weight:700}
+.plate.none b{padding:6px 10px}
+.rfr-btn{flex:none;border:1px solid #3a4560;background:#000;color:#fff;border-radius:8px;min-height:30px;
+  padding:6px 11px;font-weight:800;font-size:11px;letter-spacing:.08em}
 .rfr-btn[aria-pressed="true"]{background:var(--rfr);border-color:var(--rfr);color:#2a0030;box-shadow:0 0 14px -2px rgba(255,79,255,.8)}
-.card-take{position:relative;overflow:hidden;margin-top:4px;align-self:center;min-height:38px;flex-shrink:0;border:0;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:800;color:#fff;
+.card-take{position:relative;overflow:hidden;flex:none;min-height:38px;white-space:nowrap;border:0;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:800;color:#fff;
   background-image:var(--brand-gradient);background-size:250% 100%;animation:newGrad 14s ease-in-out infinite;box-shadow:0 10px 26px -12px rgba(124,58,237,.9),0 0 0 1px rgba(0,0,0,.4)}
 .card-take::after,.take::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:35%;pointer-events:none;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.38),transparent);transform:skewX(-18deg);animation:btnShine 6s ease-in-out infinite}
@@ -281,7 +291,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "11.10 · v17";
+const VERSIUNE_APP = "11.10 · v18";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
 const FIREBASE = {
@@ -324,7 +334,9 @@ const telHref=t=>"tel:"+String(t).replace(/[^\d+]/g,"");
 const navHref=q=>"https://www.google.com/maps/dir/?api=1&travelmode=driving&destination="+encodeURIComponent(q);
 const routeHref=st=>st.length<2?navHref(st[0])
   :navHref(st[st.length-1])+"&waypoints="+st.slice(0,-1).map(encodeURIComponent).join("%7C");
-const plate=(p,big)=>p?`<span class="plate${big?" big":""}">${esc(p)}</span>`:`<span class="plate none${big?" big":""}">fără nr.</span>`;
+// Numărul afișat ca pe plăcuță: „B 955 ATN”, „BH 52 LCA” (pe un singur rând, cu banda RO)
+const formatNr=p=>{const m=/^([A-Z]{1,2})(\d{2,3})([A-Z]{3})$/.exec(p||"");return m?m[1]+" "+m[2]+" "+m[3]:(p||"");};
+const plate=(p,big)=>p?`<span class="plate${big?" big":""}"><i>RO</i><b>${esc(formatNr(p))}</b></span>`:`<span class="plate none${big?" big":""}"><b>fără nr.</b></span>`;
 const compact=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[\s.\-\/()+,]/g,"");
 const numeAfisat=cod=>(colegi().find(p=>p[0]===cod)||[cod,cod])[1];
 
@@ -465,16 +477,16 @@ function card(it,searching){
   const btn=done?"":mine?`<button class="card-take finish" type="button" data-finish="${it.id}">✓ Finalizat</button>`
     :w.length?`<button class="card-take join" type="button" data-take="${it.id}">Mă adaug și eu</button>`
     :`<button class="card-take" type="button" data-take="${it.id}">Iau eu intervenția</button>`;
+  const rfr=it.type==="predare"?`<button class="rfr-btn" type="button" data-rfr="${it.id}" aria-pressed="${rfrOk(it)}">RFR</button>`:"";
+  const unde=line2(it);
   return `<div class="card${done?" done":""}" role="button" tabindex="0" data-id="${it.id}" style="--t:${T.c}">
-    <div class="time">${searching?`<span class="day-tag">${esc(it.dayD)}</span>`:""}${esc(it.t||"––:––")}<small>${T.label}</small>
-      ${it.type==="predare"?`<button class="rfr-btn" type="button" data-rfr="${it.id}" aria-pressed="${rfrOk(it)}">RFR</button>`:""}</div>
-    <div class="body">
-      <div class="row1">${plate(it.plate)}</div>
-      ${it.client?`<div class="who-line">${esc(it.client)}</div>`:""}
-      ${line2(it)?`<div class="where">${esc(line2(it))}</div>`:""}
-      <div class="chips">${chips(it)}</div>
-      ${btn}
-    </div></div>`;
+    <div class="c-head">
+      <div class="time">${searching?`<span class="day-tag">${esc(it.dayD)}</span>`:""}${esc(it.t||"––:––")}<small>${T.label}</small></div>
+      <div class="c-plate">${plate(it.plate)}${it.res?`<span class="c-rez">${esc(it.res)}</span>`:""}</div>
+    </div>
+    ${it.client||unde?`<div class="c-mid">${it.client?`<div class="who-line">${esc(it.client)}</div>`:""}${unde?`<div class="where">${it.type!=="service"?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>':""}${esc(unde)}</div>`:""}</div>`:""}
+    <div class="c-foot"><div class="chips">${rfr}${chips(it)}</div>${btn}</div>
+  </div>`;
 }
 
 function render(){
