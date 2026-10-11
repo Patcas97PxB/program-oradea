@@ -158,7 +158,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .act svg{width:18px;height:18px;flex:none}
 .owner{font-size:14px;color:var(--muted)}
 .owner b{color:var(--fg)}
-.take{position:relative;overflow:hidden;width:100%;border:0;border-radius:12px;padding:14px;font-size:15px;font-weight:800;color:#fff;
+.take{position:relative;overflow:hidden;width:100%;min-height:50px;flex-shrink:0;display:flex;align-items:center;justify-content:center;line-height:1.2;border:0;border-radius:12px;padding:14px;font-size:15px;font-weight:800;color:#fff;
   background-image:var(--brand-gradient);background-size:250% 100%;animation:newGrad 14s ease-in-out infinite;box-shadow:0 10px 26px -12px rgba(124,58,237,.9)}
 .steps{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .step{border:1px solid var(--line);background:var(--surface-3);border-radius:12px;padding:11px 4px;font-weight:800;font-size:13.5px;text-align:center}
@@ -178,7 +178,8 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .picker{position:absolute;inset:0;z-index:25;background:rgba(3,6,12,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:flex-end}
 .picker-card{width:100%;background:#10172a;border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:16px 14px calc(var(--sab) + 16px);
   display:flex;flex-direction:column;gap:8px;max-height:85%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
-.picker-card>*{flex:none} /* într-o listă lungă nimic nu se turtește; se derulează */
+.picker-card>*{flex:none;flex-shrink:0}
+.picker-row,.cont-row{min-height:48px} /* într-o listă lungă nimic nu se turtește; se derulează */
 .picker-title{font-weight:800;font-size:16px;padding:0 4px 4px}
 .picker-row{display:flex;align-items:center;justify-content:space-between;gap:10px;text-decoration:none;color:var(--fg);
   background:var(--surface-3);border:1px solid var(--line);border-radius:12px;padding:12px;font-weight:700;text-align:left;width:100%}
@@ -278,6 +279,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
+const VERSIUNE_APP = "11.10 · v11";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
 const FIREBASE = {
@@ -566,7 +568,7 @@ function meniuCont(){
   const p=$("#picker");
   p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Contul meu">
     <div class="picker-title">${esc(numeAfisat(state.me))}</div>
-    <div class="picker-text">Utilizator: <b>${esc(state.user||"")}</b>${state.rol==="admin"?" · administrator":""}</div>
+    <div class="picker-text">Utilizator: <b>${esc(state.user||"")}</b>${state.rol==="admin"?" · administrator":""}<br><small style="opacity:.7">Versiunea aplicației: ${VERSIUNE_APP}</small></div>
     ${state.rol==="admin"?`<button class="picker-row" type="button" data-m="conturi"><span><b>Agenți și conturi</b><small>Adaugă sau șterge agenți, coduri de activare, parole uitate</small></span></button>`:""}
     <button class="picker-row" type="button" data-m="parola"><span><b>Schimbă parola</b></span></button>
     <button class="picker-row" type="button" data-m="iesire"><span><b>Ieși din cont</b><small>Pe acest telefon nu mai primești notificări</small></span></button>
