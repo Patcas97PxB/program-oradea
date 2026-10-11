@@ -59,6 +59,11 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .icon-btn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--muted)}
 .icon-btn svg{width:18px;height:18px}
 .icon-btn.loading svg{animation:spin .9s linear infinite}
+.icon-btn.bell{position:relative}
+.icon-btn.bell.on{color:var(--predare);border-color:rgba(34,197,94,.5)}
+.icon-btn.bell.off::after{content:"";position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 6px #f59e0b}
+.picker-text{color:var(--muted);font-size:14px;padding:0 4px 6px;line-height:1.5}
+.picker-text b{color:var(--fg)}
 .me-btn{height:38px;border-radius:11px;border:1px solid var(--line);background:var(--surface-3);padding:0 12px;font-weight:800;font-size:14px}
 .search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 10px}
 .search:focus-within{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(37,99,235,.25)}
@@ -206,6 +211,9 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
     <div class="top-row">
       <div class="brand">Program Oradea<small id="subtitle">Se încarcă…</small></div>
       <div class="top-actions">
+        <button class="icon-btn bell" id="bell" type="button" aria-label="Notificări" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>
+        </button>
         <button class="icon-btn" id="refresh" type="button" aria-label="Reîncarcă programul">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
         </button>
@@ -250,6 +258,11 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
+// Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
+const FIREBASE = {
+  apiKey: "", authDomain: "", projectId: "", messagingSenderId: "", appId: "",
+  vapidKey: ""
+};
 
 const PEOPLE=[["ANGEL","Angel"],["BOGDAN","Bogdan"],["FILIP","Filip"],["GEORGE","George"],["IULIAN","Iulian"],["RARES","Rareș"],["SEBI","Sebi"],["URSU","Ursu"],["VLAD","Vlad"]];
 const TYPES={
@@ -330,6 +343,7 @@ async function incarca(manual){
     state.sync=Date.now();store.set("po.sync",state.sync);
     $("#err").hidden=true;
     pregateste();renderDays();render();
+    deschideDinLink();
     if(manual) toast("Program actualizat");
   }catch(e){
     $("#err").hidden=false;
@@ -518,7 +532,7 @@ function pickPerson(){
     ${PEOPLE.map(([c,n])=>`<button class="picker-row" type="button" data-c="${c}" aria-pressed="${c===state.me}"><span><b>${n}</b></span></button>`).join("")}
     <button class="picker-cancel" type="button">Renunță</button></div>`;
   p.hidden=false;
-  p.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{state.me=b.dataset.c;store.set("po.me",state.me);$("#meBtn").textContent=numeAfisat(state.me);p.hidden=true;render();});
+  p.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{state.me=b.dataset.c;store.set("po.me",state.me);$("#meBtn").textContent=numeAfisat(state.me);p.hidden=true;render();reaboneaza(true);});
   p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
   p.onclick=e=>{if(e.target===p)p.hidden=true;};
 }
@@ -539,6 +553,14 @@ function aplicaLocal(it,actiune,valoare){
   if(actiune==="rfr") s.rfr={facut:!!valoare,cine:eu,ora};
 }
 let inZbor=0;
+async function postScript(corp){
+  const r=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify(Object.assign({k:state.key,cine:state.me},corp))});
+  let j;
+  try{j=JSON.parse(await r.text());}catch(x){throw new Error("scriptul nu a răspuns corect");}
+  if(j.eroare) throw new Error(j.eroare);
+  return j;
+}
 async function trimite(it,actiune,valoare){
   aplicaLocal(it,actiune,valoare);render();reimprospateazaDetaliu(it.id);
   inZbor++;
@@ -627,6 +649,86 @@ $("#q").addEventListener("input",e=>{state.q=e.target.value;$("#qClear").hidden=
 $("#qClear").onclick=()=>{state.q="";$("#q").value="";$("#qClear").hidden=true;render();};
 $("#refresh").onclick=()=>incarca(true);
 $("#meBtn").onclick=pickPerson;
+
+// ---------- Notificări ----------
+// Pe iPhone merg doar din aplicația instalată pe ecranul principal (iOS 16.4+), iar permisiunea se cere la o atingere.
+const areFirebase=()=>!!(FIREBASE.apiKey&&FIREBASE.vapidKey);
+const instalata=()=>window.matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const eIOS=()=>/iPhone|iPad|iPod/.test(navigator.userAgent);
+const suportaNotif=()=>"Notification" in window&&"serviceWorker" in navigator&&"PushManager" in window;
+const notifActive=()=>suportaNotif()&&Notification.permission==="granted"&&!!store.get("po.push",null);
+function stareClopotel(){
+  const b=$("#bell");b.hidden=!areFirebase();
+  b.classList.toggle("on",notifActive());b.classList.toggle("off",!notifActive());
+}
+function incarcaScript(src){return new Promise((ok,nu)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>nu(new Error("nu pot încărca "+src));document.head.appendChild(s);});}
+let fbGata=null;
+function firebaseMessaging(){
+  if(!fbGata) fbGata=(async()=>{
+    const v="https://www.gstatic.com/firebasejs/10.14.1/";
+    await incarcaScript(v+"firebase-app-compat.js");await incarcaScript(v+"firebase-messaging-compat.js");
+    const {vapidKey,...cfg}=FIREBASE;firebase.initializeApp(cfg);return firebase.messaging();
+  })();
+  return fbGata;
+}
+async function abonare(){
+  const m=await firebaseMessaging(),reg=await navigator.serviceWorker.ready;
+  const token=await m.getToken({vapidKey:FIREBASE.vapidKey,serviceWorkerRegistration:reg});
+  if(!token) throw new Error("telefonul nu a dat un cod de notificări");
+  await postScript({actiune:"abonare",valoare:token});
+  store.set("po.push",{token,cine:state.me,la:Date.now()});
+}
+async function activeazaNotificari(){
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){toast("Notificările nu au fost permise.");arataNotificari();return;}
+    $("#picker").hidden=true;toast("Activez notificările…");
+    await abonare();stareClopotel();toast("Notificări active pentru "+numeAfisat(state.me));
+  }catch(e){toast("Nu am putut activa notificările: "+e.message);}
+}
+// Codul de notificări se mai schimbă; îl retrimitem o dată pe zi și când se schimbă colegul.
+async function reaboneaza(fortat){
+  const p=store.get("po.push",null);
+  if(!areFirebase()||!p||!suportaNotif()||Notification.permission!=="granted") return;
+  if(!fortat&&p.cine===state.me&&Date.now()-p.la<864e5) return;
+  try{await abonare();stareClopotel();}catch(e){}
+}
+function arataNotificari(){
+  const p=$("#picker");let corp;
+  if(!suportaNotif()||(eIOS()&&!instalata()))
+    corp=`<div class="picker-text">Pe iPhone, notificările merg doar din aplicația instalată: în Safari apasă <b>Partajează → Adaugă pe ecranul principal</b>, apoi deschide aplicația de pe ecran.</div>`;
+  else if(Notification.permission==="denied")
+    corp=`<div class="picker-text">Notificările sunt blocate pentru aplicație. Deschide <b>Setări → Notificări → Program</b> și permite-le.</div>`;
+  else if(notifActive())
+    corp=`<div class="picker-text">Notificările sunt <b>active</b> pe acest telefon pentru <b>${esc(numeAfisat(state.me))}</b>. Primești una când numele tău apare pe un rând din program.</div>
+      <button class="picker-row" type="button" id="notifTest"><span><b>Trimite-mi o notificare de test</b></span></button>`;
+  else
+    corp=`<div class="picker-text">Primești o notificare când operaționalul te trece pe un rând din program, pentru azi, mâine sau poimâine.</div>
+      <button class="take" type="button" id="notifOn">Activează notificările</button>`;
+  p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Notificări"><div class="picker-title">Notificări</div>${corp}
+    <button class="picker-cancel" type="button">Închide</button></div>`;
+  p.hidden=false;
+  const on=$("#notifOn");if(on)on.onclick=activeazaNotificari;
+  const t=$("#notifTest");if(t)t.onclick=async()=>{p.hidden=true;try{await postScript({actiune:"test"});toast("Notificarea de test a plecat. Ar trebui să apară în câteva secunde.");}catch(e){toast("Nu a mers: "+e.message);}};
+  p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
+  p.onclick=e=>{if(e.target===p)p.hidden=true;};
+}
+$("#bell").onclick=arataNotificari;
+
+// Atingerea unei notificări deschide aplicația cu #i=<intervenția>
+function citesteLink(){
+  const m=/[#&]i=([^&]+)/.exec(location.hash);
+  if(m){state.deschide=decodeURIComponent(m[1]);history.replaceState(null,"",location.pathname);}
+}
+function deschideDinLink(){
+  if(!state.deschide) return;
+  const it=ITEMS.find(x=>x.id===state.deschide);
+  if(!it){ if(state.data&&state.data.doarAziMaine) cereTot(); else state.deschide=null; return; }
+  state.deschide=null;state.day=it.dayId;state.filter="all";
+  document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.f==="all"));
+  renderDays();render();openDetail(it.id);
+}
+window.addEventListener("hashchange",()=>{citesteLink();deschideDinLink();});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)incarca();});
 setInterval(()=>{if(!document.hidden)incarca();},10000);
 setInterval(subtitlu,30000);
@@ -635,8 +737,10 @@ setInterval(subtitlu,30000);
 const mk=/[#&]k=([0-9a-f]{16,})/i.exec(location.hash);
 if(mk){state.key=mk[1];store.set("po.key",state.key);history.replaceState(null,"",location.pathname);}
 $("#meBtn").textContent=numeAfisat(state.me)||"Eu";
-pregateste();renderDays();render();
-if(!state.key||!state.me) arataSetup(); else incarca();
+citesteLink();
+pregateste();renderDays();render();deschideDinLink();
+stareClopotel();
+if(!state.key||!state.me) arataSetup(); else {incarca();setTimeout(()=>reaboneaza(false),3000);}
 
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>

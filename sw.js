@@ -1,5 +1,6 @@
-// Ține aplicația disponibilă și fără semnal. Datele programului nu trec pe aici (vin direct de la scriptul Google).
-const VERSIUNE = 'po-v5';
+// Ține aplicația disponibilă și fără semnal și afișează notificările.
+// Datele programului nu trec pe aici (vin direct de la scriptul Google).
+const VERSIUNE = 'po-v6';
 const FISIERE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -22,4 +23,31 @@ self.addEventListener('fetch', e => {
       return r;
     }).catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
   );
+});
+
+// Notificare trimisă de script prin Firebase. Pe iPhone fiecare mesaj trebuie afișat, altfel iOS oprește notificările.
+self.addEventListener('push', e => {
+  let m = {};
+  try { m = e.data ? e.data.json() : {}; } catch (x) { m = { notification: { body: e.data && e.data.text() } }; }
+  const n = m.notification || {}, d = m.data || {};
+  const link = (m.fcmOptions && m.fcmOptions.link) || d.link || self.registration.scope;
+  e.waitUntil(self.registration.showNotification(n.title || 'Program Oradea', {
+    body: n.body || '',
+    icon: 'icons/icon-192.png',
+    badge: 'icons/icon-192.png',
+    tag: d.id || undefined,
+    data: { link }
+  }));
+});
+
+// Atingerea notificării deschide aplicația direct pe intervenție.
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const link = (e.notification.data && e.notification.data.link) || self.registration.scope;
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(lista => {
+    for (const c of lista) {
+      if (c.url.startsWith(self.registration.scope)) return c.focus().then(() => c.navigate(link)).catch(() => self.clients.openWindow(link));
+    }
+    return self.clients.openWindow(link);
+  }));
 });
