@@ -279,7 +279,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "11.10 · v13";
+const VERSIUNE_APP = "11.10 · v14";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
 const FIREBASE = {
@@ -336,8 +336,10 @@ function pregateste(){
     const zi={id:z.data,dow:ZILE_SAPT[d.getDay()],lung:ZILE_LUNG[d.getDay()],d:pad(d.getDate())+"."+pad(d.getMonth()+1),items:[]};
     const vazute={};
     z.interventii.forEach(r=>{
-      let id=[z.data,r.ora||"",r.nrAuto||"",r.rezervare||"",r.tip].join("|");
-      vazute[id]=(vazute[id]||0)+1; if(vazute[id]>1) id+="#"+vazute[id];
+      // ID-ul vine de la script și rămâne același când se schimbă ora sau mașina (zi|tip|rezervare),
+      // ca statusurile (Finalizat, RFR, Iau eu) să nu se piardă. Rezerva e pentru date vechi, fără id.
+      let id=r.id||[z.data,r.ora||"",r.nrAuto||"",r.rezervare||"",r.tip].join("|");
+      if(!r.id){vazute[id]=(vazute[id]||0)+1; if(vazute[id]>1) id+="#"+vazute[id];}
       const it={
         id, r, dayId:z.data, dayD:zi.d, type:TYPES[r.tip]?r.tip:"service",
         t:r.ora?(r.oraPana?r.ora+"–"+r.oraPana:r.ora):(r.oraNesigura?"??:??":""),
