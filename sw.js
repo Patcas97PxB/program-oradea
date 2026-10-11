@@ -1,6 +1,6 @@
 // Ține aplicația disponibilă și fără semnal și afișează notificările.
 // Datele programului nu trec pe aici (vin direct de la scriptul Google).
-const VERSIUNE = 'po-v19';
+const VERSIUNE = 'po-v20';
 const FISIERE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -17,7 +17,8 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== self.location.origin) return;
   e.respondWith(
-    fetch(e.request).then(r => {
+    // no-cache: întreabă mereu serverul dacă fișierul s-a schimbat (nu folosi copia browserului de 10 minute)
+    fetch(e.request, { cache: 'no-cache' }).then(r => {
       const copie = r.clone();
       caches.open(VERSIUNE).then(c => c.put(e.request, copie));
       return r;

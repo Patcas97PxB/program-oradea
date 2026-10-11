@@ -294,7 +294,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "11.10 · v19";
+const VERSIUNE_APP = "11.10 · v20";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
 const FIREBASE = {
@@ -603,10 +603,11 @@ function meniuCont(){
     <div class="picker-text">Utilizator: <b>${esc(state.user||"")}</b>${state.rol==="admin"?" · administrator":""}<br><small style="opacity:.7">Versiunea aplicației: ${VERSIUNE_APP}</small></div>
     ${state.rol==="admin"?`<button class="picker-row" type="button" data-m="conturi"><span><b>Agenți și conturi</b><small>Adaugă sau șterge agenți, coduri de activare, parole uitate</small></span></button>`:""}
     <button class="picker-row" type="button" data-m="parola"><span><b>Schimbă parola</b></span></button>
+    <button class="picker-row" type="button" data-m="actualizare"><span><b>Actualizează aplicația</b><small>Dacă nu vezi ultimele schimbări</small></span></button>
     <button class="picker-row" type="button" data-m="iesire"><span><b>Ieși din cont</b><small>Pe acest telefon nu mai primești notificări</small></span></button>
     <button class="picker-cancel" type="button">Închide</button></div>`;
   p.hidden=false;
-  p.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>({conturi:adminConturi,parola:schimbaParolaUI,iesire:iesire})[b.dataset.m]());
+  p.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>({conturi:adminConturi,parola:schimbaParolaUI,iesire:iesire,actualizare:actualizeazaAplicatia})[b.dataset.m]());
   p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
   p.onclick=e=>{if(e.target===p)p.hidden=true;};
 }
@@ -925,7 +926,26 @@ pregateste();renderDays();render();deschideDinLink();
 stareClopotel();
 if(!state.token) arataLogin(); else {incarca();setTimeout(()=>reaboneaza(false),3000);}
 
-if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+// Actualizări: la fiecare deschidere aplicația verifică dacă e o versiune nouă și se reîncarcă singură.
+// (Pe iPhone, aplicația de pe ecran păstra altfel varianta veche până la câteva ore.)
+if("serviceWorker" in navigator){
+  let reincarcat=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!reincarcat){reincarcat=true;location.reload();}});
+  navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{
+    const verifica=()=>reg.update().catch(()=>{});
+    verifica();
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden)verifica();});
+  }).catch(()=>{});
+}
+// Buton de urgență: șterge copiile salvate ale aplicației și o reîncarcă (contul și datele rămân)
+async function actualizeazaAplicatia(){
+  $("#picker").hidden=true;toast("Actualizez aplicația…");
+  try{
+    if(window.caches) for(const k of await caches.keys()) await caches.delete(k);
+    if(navigator.serviceWorker) for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+  }catch(e){}
+  location.replace(location.pathname+"?v="+Date.now());
+}
 </script>
 </body>
 </html>
