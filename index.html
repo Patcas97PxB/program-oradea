@@ -279,7 +279,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "11.10 · v12";
+const VERSIUNE_APP = "11.10 · v13";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
 const FIREBASE = {
@@ -350,12 +350,24 @@ function pregateste(){
       it.hay=compact([it.raw,it.client,it.company,it.from,it.to,(it.contacts||[]).map(c=>c.n+" "+c.t).join(" ")].join(" "));
       zi.items.push(it);ITEMS.push(it);
     });
+    leagaMasini(zi.items);
     DAYS.push(zi);
   });
   if(!state.day||!DAYS.some(d=>d.id===state.day)){
     const azi=isoAzi();
     state.day=(DAYS.find(d=>d.id===azi)||DAYS.find(d=>d.id>azi)||DAYS[DAYS.length-1]||{}).id||null;
   }
+}
+
+// Aceeași mașină, aceeași zi: o preluare urmată de o predare (ex. preluare 11:00, predare 11:15).
+// Cine predă trebuie să știe că mașina vine întâi din preluare și trebuie pregătită (RFR).
+function leagaMasini(items){
+  const ord=x=>x.r.ora||"99:99";
+  items.filter(x=>x.type==="predare"&&x.plate).forEach(pr=>{
+    const prel=items.filter(x=>x.type==="preluare"&&x.plate===pr.plate&&ord(x)<=ord(pr)).sort((a,b)=>ord(a)<ord(b)?1:-1)[0];
+    if(!prel) return;
+    pr.vineDin=prel;prel.pleacaIar=pr;
+  });
 }
 
 async function incarca(manual){
@@ -427,6 +439,8 @@ function chips(it){
   if(it.type==="predare"&&!rfrOk(it)) c.push(`<span class="chip rfr-no">Lipsă RFR</span>`);
   if(it.pay) c.push(`<span class="chip${it.paid?"":" pay"}">${esc(it.pay)}</span>`);
   if(it.urgent) c.push(`<span class="chip pay">Urgent</span>`);
+  if(it.vineDin) c.push(`<span class="chip${isDone(it.vineDin)?"":" rfr-no"}">↩ vine din preluarea ${esc(it.vineDin.t||"fără oră")}${isDone(it.vineDin)?" ✓":""}</span>`);
+  if(it.pleacaIar) c.push(`<span class="chip">↪ pleacă iar ${esc(it.pleacaIar.t||"(fără oră)")}</span>`);
   (it.r.numeNecunoscute||[]).forEach(n=>c.push(`<span class="chip pay" title="Nume care nu e în lista de agenți">? ${esc(n.text)}${n.sugestie?" → "+esc(numeAfisat(n.sugestie)):""}</span>`));
   if(!w.length) c.push(`<span class="chip free">Liberă</span>`);
   else c.push(...w.map(x=>`<span class="chip${x===state.me?" me":""}">${esc(numeAfisat(x))}</span>`));
@@ -503,7 +517,9 @@ function openDetail(id,synced){
   const rows=[
     ["Client",it.client],["Firmă",it.company],["Telefon",callable.length===1?callable[0].a||callable[0].t:null],["Zbor",it.flight],
     ["Detalii",it.info],[it.to?"Oprirea 1":"Adresa",it.from],[it.from?"Oprirea 2":"Adresa",it.to],
-    ["Locație",it.type!=="transfer"?it.loc:null],["Rezervare",it.res],["Plată",it.pay]
+    ["Locație",it.type!=="transfer"?it.loc:null],["Rezervare",it.res],["Plată",it.pay],
+    ["Legătură",it.vineDin?`Mașina vine din preluarea de ${it.vineDin.t||"(fără oră)"}${it.vineDin.client?" ("+it.vineDin.client+")":""}${isDone(it.vineDin)?" · preluată ✓":" · încă nepreluată"}`
+      :it.pleacaIar?`Mașina pleacă din nou: predare ${it.pleacaIar.t||"(fără oră)"}${it.pleacaIar.client?" ("+it.pleacaIar.client+")":""} · fă RFR-ul după preluare`:null]
   ].filter(r=>r[1]);
   let status;
   if(done) status=`<div class="box"><div class="owner">✓ Finalizată de <b>${esc(p.doneBy?numeAfisat(p.doneBy):w.map(numeAfisat).join(", ")||"—")}</b>${p.done?" la "+p.done:""}</div>
