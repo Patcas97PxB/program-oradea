@@ -289,7 +289,9 @@ const FIREBASE = {
   vapidKey: "BIDRV4cBd56TgD7uiv7KaQABdayWu8Mg8Xnuz1CZ-gTbX761yfTcs0SySyavTLxKMS6fex1-Aoiv6FzNRkHjaXo"
 };
 
-const PEOPLE=[["ANGEL","Angel"],["BOGDAN","Bogdan"],["FILIP","Filip"],["GEORGE","George"],["IULIAN","Iulian"],["RARES","Rareș"],["SEBI","Sebi"],["URSU","Ursu"],["VLAD","Vlad"]];
+// Colegii vin de la script (lista editată de administrator). Asta e doar rezerva până la prima încărcare.
+const COLEGI_REZERVA=[["ANGEL","Angel"],["BOGDAN","Bogdan"],["FILIP","Filip"],["GEORGE","George"],["IULIAN","Iulian"],["RARES","Rareș"],["SEBI","Sebi"],["URSU","Ursu"],["VLAD","Vlad"]];
+const colegi=()=>(state.data&&state.data.colegi)?state.data.colegi.map(c=>[c.cod,c.nume]):COLEGI_REZERVA;
 const TYPES={
   predare:{label:"Predare",c:"var(--predare)",bg:"var(--predare-bg)"},
   preluare:{label:"Preluare",c:"var(--preluare)",bg:"var(--preluare-bg)"},
@@ -319,7 +321,7 @@ const routeHref=st=>st.length<2?navHref(st[0])
   :navHref(st[st.length-1])+"&waypoints="+st.slice(0,-1).map(encodeURIComponent).join("%7C");
 const plate=(p,big)=>p?`<span class="plate${big?" big":""}">${esc(p)}</span>`:`<span class="plate none${big?" big":""}">fără nr.</span>`;
 const compact=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[\s.\-\/()+,]/g,"");
-const numeAfisat=cod=>(PEOPLE.find(p=>p[0]===cod)||[cod,cod])[1];
+const numeAfisat=cod=>(colegi().find(p=>p[0]===cod)||[cod,cod])[1];
 
 // ---------- Datele ----------
 let ITEMS=[], DAYS=[];
@@ -399,8 +401,16 @@ function prog(it){const s=stOf(it)||{};return {started:s.pornit&&s.pornit.ora,st
 const isDone=it=>!!prog(it).done||it.ok;
 const rfrOk=it=>{const s=stOf(it);return s&&s.rfr?s.rfr.facut:it.r.rfr==="facut";};
 
-const NAMES="BOGDAN|PATCAS|SEBI|BRATU|ANGEL|LASCU|RARES|VLAD|FILIP|MIHALI|IULIAN|IUTI|MLADIN|URSU|VID|CIPRI|LUCIAN|COLAB|GEO(?:RGE)?(?:\\s*(?:URSU|U|VID|V|X2)\\.?)?";
-const TAIL=new RegExp("(?:\\s*[\\/+]?\\s*(?:"+NAMES+")\\.?)+\\s*(?:OK!?)?\\s*$","i");
+let TAIL=/(?!)/,tailPentru=null;
+function tail(){ // expresia pentru numele colegilor de la finalul rândului, refăcută când se schimbă lista
+  const lista=state.data&&state.data.colegi;
+  if(lista&&lista!==tailPentru){
+    tailPentru=lista;
+    const alt=lista.flatMap(c=>c.aliasuri||[]).sort((a,b)=>b.length-a.length).map(a=>a.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/ /g,"\\s*")).join("|");
+    if(alt) TAIL=new RegExp("(?:\\s*[\\/+]?\\s*(?:"+alt+")\\.?)+\\s*(?:OK!?)?\\s*$","i");
+  }
+  return TAIL;
+}
 function docLine(it){
   let h=esc(it.raw);
   if(it.type==="predare"&&/RFR/.test(h)) h=h.replace("RFR",`<span class="${it.r.rfr==="facut"?"rfr-on":""}">RFR</span>`);
@@ -420,7 +430,7 @@ function chips(it){
 }
 function line2(it){
   if(it.type==="transfer") return [it.from,it.to].filter(Boolean).join(" → ")||it.raw;
-  if(it.type==="service"||it.type==="nota") return it.raw.replace(/^\s*[\d:?.\-–!]+\s*[-,]?\s*/,"").replace(TAIL,"");
+  if(it.type==="service"||it.type==="nota") return it.raw.replace(/^\s*[\d:?.\-–!]+\s*[-,]?\s*/,"").replace(tail(),"");
   return [it.company,it.loc].filter(Boolean).join(" · ");
 }
 
@@ -556,7 +566,7 @@ function meniuCont(){
   p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Contul meu">
     <div class="picker-title">${esc(numeAfisat(state.me))}</div>
     <div class="picker-text">Utilizator: <b>${esc(state.user||"")}</b>${state.rol==="admin"?" · administrator":""}</div>
-    ${state.rol==="admin"?`<button class="picker-row" type="button" data-m="conturi"><span><b>Colegi și conturi</b><small>Coduri de activare, parole uitate</small></span></button>`:""}
+    ${state.rol==="admin"?`<button class="picker-row" type="button" data-m="conturi"><span><b>Agenți și conturi</b><small>Adaugă sau șterge agenți, coduri de activare, parole uitate</small></span></button>`:""}
     <button class="picker-row" type="button" data-m="parola"><span><b>Schimbă parola</b></span></button>
     <button class="picker-row" type="button" data-m="iesire"><span><b>Ieși din cont</b><small>Pe acest telefon nu mai primești notificări</small></span></button>
     <button class="picker-cancel" type="button">Închide</button></div>`;
@@ -596,21 +606,58 @@ async function iesire(){
 
 async function adminConturi(){
   const p=$("#picker");
-  p.innerHTML=`<div class="picker-card"><div class="picker-title">Colegi și conturi</div><div class="picker-text">Se încarcă…</div></div>`;
+  p.innerHTML=`<div class="picker-card"><div class="picker-title">Agenți și conturi</div><div class="picker-text">Se încarcă…</div></div>`;
   p.hidden=false;
   let lista;
   try{lista=(await postScript({actiune:"conturi"})).conturi;}catch(e){p.hidden=true;toast(e.message);return;}
-  p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Colegi și conturi"><div class="picker-title">Colegi și conturi</div>
-    <div class="picker-text">Un cod de activare e valabil 7 zile. Cu el colegul își face contul sau își pune o parolă nouă.</div>
-    ${lista.map(c=>`<div class="cont-row"><span><b>${esc(numeAfisat(c.cod))}</b>
-      <small>${c.user?"utilizator: "+esc(c.user)+(c.rol==="admin"?" · admin":""):c.invitatie?"cod trimis, încă neactivat":"fără cont"}${c.telefoane?" · 🔔":""}</small></span>
-      <button type="button" data-cod="${c.cod}">${c.user?"Parolă nouă":c.invitatie?"Cod nou":"Cod de activare"}</button></div>`).join("")}
+  const cuApp=lista.filter(c=>c.aplicatie),faraApp=lista.filter(c=>!c.aplicatie);
+  const rand=c=>`<div class="cont-row"><span><b>${esc(c.nume)}</b>
+      <small>în program: ${esc((c.aliasuri||[]).join(", "))}</small>
+      ${c.aplicatie?`<small>${c.user?"utilizator: "+esc(c.user)+(c.rol==="admin"?" · admin":""):c.invitatie?"cod trimis, încă neactivat":"fără cont"}${c.telefoane?" · 🔔":""}</small>`:""}</span>
+      <span style="display:flex;flex-direction:column;gap:6px;flex:none">
+        ${c.aplicatie?`<button type="button" data-cod-inv="${c.cod}">${c.user?"Parolă nouă":c.invitatie?"Cod nou":"Cod de activare"}</button>`:""}
+        <button type="button" data-cod-edit="${c.cod}">Editează</button></span></div>`;
+  p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Agenți și conturi"><div class="picker-title">Agenți și conturi</div>
+    <button class="take" type="button" id="adaugaAgent">+ Adaugă agent</button>
+    <div class="picker-text" style="padding-top:6px">Un cod de activare e valabil 7 zile. Cu el agentul își face contul sau își pune o parolă nouă.</div>
+    ${cuApp.map(rand).join("")}
+    ${faraApp.length?`<div class="count" style="padding:14px 4px 2px">Doar recunoscuți în program, fără aplicație</div>${faraApp.map(rand).join("")}`:""}
     <button class="picker-cancel" type="button">Închide</button></div>`;
   p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
-  p.querySelectorAll("[data-cod]").forEach(b=>b.onclick=async()=>{
+  $("#adaugaAgent").onclick=()=>editeazaAgent(null);
+  p.querySelectorAll("[data-cod-edit]").forEach(b=>b.onclick=()=>editeazaAgent(lista.find(c=>c.cod===b.dataset.codEdit)));
+  p.querySelectorAll("[data-cod-inv]").forEach(b=>b.onclick=async()=>{
     b.textContent="…";
-    try{const j=await postScript({actiune:"invitatie",pentru:b.dataset.cod});arataCod(b.dataset.cod,j.cod);}catch(e){toast(e.message);adminConturi();}
+    try{const j=await postScript({actiune:"invitatie",pentru:b.dataset.codInv});arataCod(b.dataset.codInv,j.cod);}catch(e){toast(e.message);adminConturi();}
   });
+}
+
+function editeazaAgent(c){
+  const p=$("#picker"),nou=!c;
+  p.innerHTML=`<form class="picker-card" id="formAgent"><div class="picker-title">${nou?"Agent nou":"Editează: "+esc(c.nume)}</div>
+    <label>Nume (cum apare în aplicație)<input id="aNume" value="${nou?"":esc(c.nume)}" placeholder="ex. Alex" autocomplete="off"></label>
+    <label>Cum e scris în program (mai multe variante, separate prin virgulă)
+      <input id="aAlias" value="${nou?"":esc((c.aliasuri||[]).join(", "))}" placeholder="ex. ALEX, ALEX P" autocapitalize="characters" autocomplete="off"></label>
+    <div class="picker-text">Când una din variante apare pe un rând din program, intervenția e a lui și primește notificare.</div>
+    <label style="flex-direction:row;align-items:center;gap:10px"><input id="aApp" type="checkbox" style="width:22px;height:22px" ${nou||c.aplicatie?"checked":""}>Folosește aplicația (cont și notificări)</label>
+    <button class="take" type="submit">${nou?"Adaugă agentul":"Salvează"}</button>
+    ${!nou&&c.cod!==state.me?`<button class="picker-row" type="button" id="stergeAgent" style="justify-content:center;color:#ffb3c1;border-color:rgba(255,77,109,.4)">Șterge agent</button>`:""}
+    <button class="picker-cancel" type="button">Înapoi</button></form>`;
+  p.hidden=false;
+  p.querySelector(".picker-cancel").onclick=adminConturi;
+  $("#formAgent").onsubmit=async e=>{
+    e.preventDefault();
+    try{
+      await postScript({actiune:"coleg_salveaza",cod:nou?"":c.cod,nume:$("#aNume").value,aliasuri:$("#aAlias").value,aplicatie:$("#aApp").checked});
+      toast(nou?"Agent adăugat. Programul se recitește cu numele nou.":"Salvat.");incarca();adminConturi();
+    }catch(x){toast(x.message);}
+  };
+  const st=$("#stergeAgent");
+  if(st) st.onclick=async()=>{
+    if(!st.dataset.sigur){st.dataset.sigur="1";st.textContent="Sigur? Apasă din nou ca să-l ștergi";return;}
+    try{await postScript({actiune:"coleg_sterge",cod:c.cod});toast(c.nume+" a fost șters. Nu mai are cont și nu mai primește notificări.");incarca();adminConturi();}
+    catch(x){toast(x.message);}
+  };
 }
 
 function arataCod(cod,sir){
