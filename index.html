@@ -156,6 +156,10 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .card-take.finish{background:var(--predare);animation:none;color:var(--on-ok);box-shadow:0 8px 20px -10px rgba(34,197,94,.9)}
 .card-take.join::after,.card-take.finish::after{display:none}
 .empty{text-align:center;color:var(--muted);padding:40px 20px}
+.credit{flex:none;text-align:center;color:var(--muted);opacity:.65;font-size:11.5px;line-height:1.5;padding:18px 12px 6px;margin:0}
+.info-date{max-height:60vh;overflow-y:auto;font-size:13.5px;line-height:1.55;color:var(--muted);padding:0 4px}
+.info-date h4{color:#fff;font-size:13.5px;margin:12px 0 3px}
+.info-date p{margin:0}
 
 /* Detalii */
 .sheet{position:absolute;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
@@ -201,7 +205,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .pax-call{flex:none;text-decoration:none;font-weight:800;font-size:13px;color:var(--on-ok);background:var(--predare);border-radius:10px;padding:8px 12px}
 
 /* Alegerea numărului, mesaje */
-.picker{position:absolute;inset:0;z-index:25;background:rgba(3,6,12,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:flex-end}
+.picker{position:absolute;inset:0;z-index:45;background:rgba(3,6,12,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:flex-end}
 .picker-card{width:100%;background:#10172a;border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:16px 14px calc(var(--sab) + 16px);
   display:flex;flex-direction:column;gap:8px;max-height:85%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .picker-card>*{flex:none;flex-shrink:0}
@@ -300,12 +304,14 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
       <div class="err" id="setupErr" hidden></div>
       <button class="take" id="setupGo" type="submit">Intră</button>
     </form>
+    <p class="credit">Datele clienților sunt doar pentru uz intern, în interes de serviciu. <a href="#" id="linkDate" style="color:inherit">Date și confidențialitate</a><br>© 2026 Bogdan Pătcaș · Toate drepturile rezervate</p>
   </section>
 </div>
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "11.10 · v26";
+const VERSIUNE_APP = "13.10 · v27";
+const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
 const FIREBASE = {
@@ -553,7 +559,7 @@ function render(){
   const empty=searching?`Nimic găsit pentru „${esc(q)}”.`
     :{mine:`Nicio intervenție pentru ${esc(numeAfisat(state.me))} în ${d.d}.<br>Vezi „Libere” ca să-ți iei una.`,
       free:`Toate intervențiile din ${d.d} au pe cineva.`,all:`Nicio intervenție în ${d.d}.`}[state.filter];
-  $("#list").innerHTML=items.length?`<div class="count">${head}</div>`+items.map(it=>card(it,searching)).join(""):`<div class="count">${head}</div><div class="empty">${empty}</div>`;
+  $("#list").innerHTML=items.length?`<div class="count">${head}</div>`+items.map(it=>card(it,searching)).join("")+`<p class="credit">${DREPTURI}</p>`:`<div class="count">${head}</div><div class="empty">${empty}</div>`;
 }
 
 const contacts=it=>it.contacts.length?it.contacts:[];
@@ -636,13 +642,38 @@ function meniuCont(){
     ${state.rol==="admin"?`<button class="picker-row" type="button" data-m="conturi"><span><b>Agenți și conturi</b><small>Adaugă sau șterge agenți, coduri de activare, parole uitate</small></span></button>`:""}
     <button class="picker-row" type="button" data-m="parola"><span><b>Schimbă parola</b></span></button>
     <button class="picker-row" type="button" data-m="actualizare"><span><b>Actualizează aplicația</b><small>Dacă nu vezi ultimele schimbări</small></span></button>
+    <button class="picker-row" type="button" data-m="date"><span><b>Date și confidențialitate</b><small>Ce date folosește aplicația și cum sunt protejate</small></span></button>
     <button class="picker-row" type="button" data-m="iesire"><span><b>Ieși din cont</b><small>Pe acest telefon nu mai primești notificări</small></span></button>
-    <button class="picker-cancel" type="button">Închide</button></div>`;
+    <button class="picker-cancel" type="button">Închide</button>
+    <p class="credit" style="padding-top:8px">${DREPTURI}</p></div>`;
   p.hidden=false;
-  p.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>({conturi:adminConturi,parola:schimbaParolaUI,iesire:iesire,actualizare:actualizeazaAplicatia})[b.dataset.m]());
+  p.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>({conturi:adminConturi,parola:schimbaParolaUI,iesire:iesire,actualizare:actualizeazaAplicatia,date:infoDate})[b.dataset.m]());
   p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
   p.onclick=e=>{if(e.target===p)p.hidden=true;};
 }
+
+// Informarea colegilor (GDPR): ce date vede aplicația, ce se înregistrează despre ei, cum sunt protejate
+function infoDate(){
+  const p=$("#picker");
+  p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Date și confidențialitate">
+    <div class="picker-title">Date și confidențialitate</div>
+    <div class="info-date">
+      <h4>Ce date vezi</h4><p>Programul de lucru al biroului Oradea: intervenții, mașini, clienți, telefoane, adrese, rezervări. Sunt aceleași date pe care le vezi deja în documentul „PROGRAM ORADEA”. Le folosești doar în interes de serviciu.</p>
+      <h4>Unde stau</h4><p>Programul rămâne în Google Drive, iar aplicația doar îl citește. Pe telefon se păstrează ultima variantă, ca aplicația să meargă și fără semnal; se șterge la „Ieși din cont”. Pe GitHub se află doar codul aplicației, fără date.</p>
+      <h4>Ce se înregistrează despre tine</h4><p>Utilizatorul tău și acțiunile din aplicație (Iau eu, Pornit, Finalizat, RFR), cu ora. Le văd colegii și administratorul și se șterg automat după 30 de zile. Pentru notificări se păstrează adresa de notificare a telefonului, până ieși din cont.</p>
+      <h4>Notificările</h4><p>Conțin doar tipul, ora și numărul mașinii, fără numele clientului sau adresa, pentru că apar și pe ecranul blocat.</p>
+      <h4>Securitate</h4><p>Parola nu se salvează, doar o amprentă criptată a ei. Conexiunea e criptată (HTTPS). Sesiunea expiră după 30 de zile. După 5 parole greșite, contul se blochează 15 minute.</p>
+      <h4>Ce faci tu</h4><p>Nu da parola nimănui. Ține telefonul cu cod de blocare. Nu trimite datele clienților în afara firmei (capturi, mesaje). Dacă pierzi telefonul, anunță administratorul: îți închide accesul imediat.</p>
+      <h4>Responsabil</h4><p>Aplicația e realizată și administrată de Bogdan Pătcaș.</p>
+    </div>
+    <button class="picker-cancel" type="button">Închide</button>
+    <p class="credit" style="padding-top:8px">${DREPTURI}</p></div>`;
+  p.hidden=false;
+  p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
+  p.onclick=e=>{if(e.target===p)p.hidden=true;};
+}
+
+document.getElementById("linkDate").onclick=e=>{e.preventDefault();infoDate();};
 
 function schimbaParolaUI(){
   const p=$("#picker");
