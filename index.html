@@ -312,7 +312,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "14.10 · v28";
+const VERSIUNE_APP = "14.10 · v29";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -804,6 +804,8 @@ async function trimite(it,actiune,valoare){
   try{
     const j=await postScript({zi:it.dayId,id:it.id,actiune,valoare});
     state.data.statusuri[j.zi]=j.statusuri;store.set("po.data",state.data);
+    // Programul în Google Docs: scriptul a scris și în document (numele, OK!, RFR roz) — spunem ce a făcut
+    if(j.document){toast((/^am /.test(j.document)?"✓ În program: ":"Program: ")+j.document);setTimeout(()=>incarca(),1500);}
   }catch(e){
     toast("Nu s-a salvat: "+(e.message&&!/fetch|network|load/i.test(e.message)?e.message:"fără semnal")+". Încearcă din nou.");
     inZbor--;await incarca();return;
