@@ -312,7 +312,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "14.10 · v31";
+const VERSIUNE_APP = "14.10 · v32";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -420,6 +420,8 @@ async function incarca(manual,faraMesaj){
     state.sync=Date.now();store.set("po.sync",state.sync);
     $("#err").hidden=true;
     pregateste();renderDays();render();
+    // cardul deschis (ex. din notificare, cu datele vechi din telefon) se redesenează cu programul nou
+    {const sh=$("#sheet");if(sh.classList.contains("open")&&sh.dataset.id)openDetail(sh.dataset.id);}
     deschideDinLink();
     if(manual&&!faraMesaj) toast("Program actualizat");
   }catch(e){
