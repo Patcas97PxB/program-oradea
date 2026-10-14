@@ -1,7 +1,7 @@
 // Ține aplicația disponibilă și fără semnal și afișează notificările.
 // Datele programului nu trec pe aici (vin direct de la scriptul Google).
-const VERSIUNE = 'po-v27';
-const FISIERE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png'];
+const VERSIUNE = 'po-v28';
+const FISIERE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSIUNE).then(c => c.addAll(FISIERE)).then(() => self.skipWaiting()));

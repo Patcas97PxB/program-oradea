@@ -10,8 +10,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Program">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="icon" href="favicon.ico" sizes="any">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
@@ -225,7 +227,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 /* Prima pornire */
 .setup{position:absolute;inset:0;z-index:40;background:var(--bg);overflow-y:auto;padding:calc(var(--sat) + 40px) 22px calc(var(--sab) + 30px);display:flex;flex-direction:column;gap:18px}
-.setup img{width:76px;height:76px;border-radius:20px;box-shadow:0 12px 30px -12px rgba(124,58,237,.8)}
+.setup img{width:76px;height:76px;border-radius:20px;box-shadow:0 12px 30px -12px rgba(16,6,159,.9)}
 .setup h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
 .setup p{margin:0;color:var(--muted)}
 .setup label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:13px;color:var(--muted)}
@@ -310,7 +312,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "13.10 · v27";
+const VERSIUNE_APP = "14.10 · v28";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
