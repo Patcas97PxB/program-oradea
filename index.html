@@ -312,7 +312,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "14.10 · v29";
+const VERSIUNE_APP = "14.10 · v30";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -396,7 +396,7 @@ function pregateste(){
   }
 }
 
-async function incarca(manual){
+async function incarca(manual,faraMesaj){
   if(!state.token||state.loading) return;
   if(!manual&&inZbor>0) return; // nu suprascrie o acțiune care încă se salvează
   state.loading=true;$("#refresh").classList.add("loading");
@@ -412,7 +412,7 @@ async function incarca(manual){
     $("#err").hidden=true;
     pregateste();renderDays();render();
     deschideDinLink();
-    if(manual) toast("Program actualizat");
+    if(manual&&!faraMesaj) toast("Program actualizat");
   }catch(e){
     $("#err").hidden=false;
     $("#err").textContent=state.data?"Fără legătură cu programul. Afișez ultima variantă primită.":"Nu pot încărca programul. Verifică semnalul și apasă ⟳.";
@@ -439,8 +439,9 @@ function who(it){
   return w;
 }
 function prog(it){const s=stOf(it)||{};return {started:s.pornit&&s.pornit.ora,startedBy:s.pornit&&s.pornit.cine,done:s.finalizat&&s.finalizat.ora,doneBy:s.finalizat&&s.finalizat.cine};}
-const isDone=it=>!!prog(it).done||it.ok;
-const rfrOk=it=>{const s=stOf(it);return s&&s.rfr?s.rfr.facut:it.r.rfr==="facut";};
+// Când aplicația a scris în program (Google Docs), documentul e sursa de adevăr („doc”): contează ce scrie acolo.
+const isDone=it=>{const s=stOf(it);return it.ok||!!(s&&s.finalizat&&!s.finalizat.doc);};
+const rfrOk=it=>{const s=stOf(it);return s&&s.rfr&&!s.rfr.doc?s.rfr.facut:it.r.rfr==="facut";};
 
 let TAIL=/(?!)/,tailPentru=null;
 function tail(){ // expresia pentru numele colegilor de la finalul rândului, refăcută când se schimbă lista
@@ -803,9 +804,10 @@ async function trimite(it,actiune,valoare){
   inZbor++;
   try{
     const j=await postScript({zi:it.dayId,id:it.id,actiune,valoare});
-    state.data.statusuri[j.zi]=j.statusuri;store.set("po.data",state.data);
-    // Programul în Google Docs: scriptul a scris și în document (numele, OK!, RFR roz) — spunem ce a făcut
-    if(j.document){toast((/^am /.test(j.document)?"✓ În program: ":"Program: ")+j.document);setTimeout(()=>incarca(),1500);}
+    // Programul în Google Docs: scriptul a scris și în document (numele, OK!, RFR roz). Păstrăm pe ecran
+    // varianta locală până vine programul recitit, ca să nu „sară” înapoi o secundă.
+    if(j.document&&/^am /.test(j.document)){toast("✓ În program: "+j.document);inZbor--;await incarca(true,true);inZbor++;}
+    else{state.data.statusuri[j.zi]=j.statusuri;store.set("po.data",state.data);if(j.document)toast("Program: "+j.document);}
   }catch(e){
     toast("Nu s-a salvat: "+(e.message&&!/fetch|network|load/i.test(e.message)?e.message:"fără semnal")+". Încearcă din nou.");
     inZbor--;await incarca();return;
