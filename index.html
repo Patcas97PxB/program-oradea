@@ -312,7 +312,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "14.10 · v30";
+const VERSIUNE_APP = "14.10 · v31";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -396,17 +396,26 @@ function pregateste(){
   }
 }
 
+// gen crește la fiecare apăsare: un răspuns pornit ÎNAINTE de apăsare e vechi și nu are voie să o suprascrie.
+let gen=0,dinNou=false;
 async function incarca(manual,faraMesaj){
-  if(!state.token||state.loading) return;
-  if(!manual&&inZbor>0) return; // nu suprascrie o acțiune care încă se salvează
+  if(!state.token) return;
+  if(state.loading){dinNou=true;return;}     // vine imediat după cererea în curs
+  if(!manual&&inZbor>0) return;              // o apăsare încă se salvează; după ea se cere oricum
   state.loading=true;$("#refresh").classList.add("loading");
+  const g=gen, tot=vreauTot();
   try{
-    const r=await fetch(SCRIPT_URL+"?t="+encodeURIComponent(state.token)+(vreauTot()?"":"&z=2"),{cache:"no-store"});
+    // v = versiunea pe care o avem: dacă nu s-a schimbat nimic, scriptul răspunde doar „neschimbat”
+    const v=state.data&&state.data.v&&(!!state.data.doarAziMaine===!tot)?"&v="+encodeURIComponent(state.data.v):"";
+    const r=await fetch(SCRIPT_URL+"?t="+encodeURIComponent(state.token)+(tot?"":"&z=2")+v,{cache:"no-store"});
     const j=await r.json();
     if(j.eroare){
       if(j.auth){ arataLogin(j.eroare); return; }
       throw new Error(j.eroare);
     }
+    if(g!==gen||inZbor>0){dinNou=true;return;} // între timp ai apăsat ceva: răspunsul e de dinainte
+    state.sync=Date.now();store.set("po.sync",state.sync);
+    if(j.neschimbat){$("#err").hidden=true;if(manual&&!faraMesaj)toast("Program actualizat");return;}
     state.data=j;store.set("po.data",j);
     state.sync=Date.now();store.set("po.sync",state.sync);
     $("#err").hidden=true;
@@ -416,7 +425,10 @@ async function incarca(manual,faraMesaj){
   }catch(e){
     $("#err").hidden=false;
     $("#err").textContent=state.data?"Fără legătură cu programul. Afișez ultima variantă primită.":"Nu pot încărca programul. Verifică semnalul și apasă ⟳.";
-  }finally{state.loading=false;$("#refresh").classList.remove("loading");subtitlu();}
+  }finally{
+    state.loading=false;$("#refresh").classList.remove("loading");subtitlu();
+    if(dinNou){dinNou=false;setTimeout(()=>incarca(true,true),0);}
+  }
 }
 
 function subtitlu(){
@@ -439,9 +451,11 @@ function who(it){
   return w;
 }
 function prog(it){const s=stOf(it)||{};return {started:s.pornit&&s.pornit.ora,startedBy:s.pornit&&s.pornit.cine,done:s.finalizat&&s.finalizat.ora,doneBy:s.finalizat&&s.finalizat.cine};}
-// Când aplicația a scris în program (Google Docs), documentul e sursa de adevăr („doc”): contează ce scrie acolo.
-const isDone=it=>{const s=stOf(it);return it.ok||!!(s&&s.finalizat&&!s.finalizat.doc);};
-const rfrOk=it=>{const s=stOf(it);return s&&s.rfr&&!s.rfr.doc?s.rfr.facut:it.r.rfr==="facut";};
+// Când aplicația scrie în program (Google Docs, „scriere” de la script), documentul e sursa de adevăr pentru
+// Finalizat și RFR — inclusiv față de statusuri vechi. Altfel (.docx, doar citire) contează statusul din aplicație.
+const docSursa=()=>!!(state.data&&state.data.scriere);
+const isDone=it=>{const s=stOf(it);return it.ok||!!(s&&s.finalizat&&!s.finalizat.doc&&!docSursa());};
+const rfrOk=it=>{const s=stOf(it);return s&&s.rfr&&!s.rfr.doc&&!docSursa()?s.rfr.facut:it.r.rfr==="facut";};
 
 let TAIL=/(?!)/,tailPentru=null;
 function tail(){ // expresia pentru numele colegilor de la finalul rândului, refăcută când se schimbă lista
@@ -788,6 +802,12 @@ function aplicaLocal(it,actiune,valoare){
   if(actiune==="finalizat"){s.finalizat={cine:eu,ora};if(!s.pornit)s.pornit={cine:eu,ora};}
   if(actiune==="anuleaza") s.finalizat=null;
   if(actiune==="rfr") s.rfr={facut:!!valoare,cine:eu,ora};
+  // Programul scris de aplicație: arătăm imediat și în „program” ce se va scrie, până vine confirmarea
+  if(docSursa()){
+    if(actiune==="finalizat"){it.ok=true;it.r.ok=true;}
+    if(actiune==="anuleaza"){it.ok=false;it.r.ok=false;}
+    if(actiune==="rfr") it.r.rfr=valoare?"facut":"lipsa";
+  }
 }
 let inZbor=0;
 async function postScript(corp,faraSesiune){
@@ -800,19 +820,25 @@ async function postScript(corp,faraSesiune){
   return j;
 }
 async function trimite(it,actiune,valoare){
-  aplicaLocal(it,actiune,valoare);render();reimprospateazaDetaliu(it.id);
+  gen++;aplicaLocal(it,actiune,valoare);render();reimprospateazaDetaliu(it.id);
   inZbor++;
+  let j;
   try{
-    const j=await postScript({zi:it.dayId,id:it.id,actiune,valoare});
-    // Programul în Google Docs: scriptul a scris și în document (numele, OK!, RFR roz). Păstrăm pe ecran
-    // varianta locală până vine programul recitit, ca să nu „sară” înapoi o secundă.
-    if(j.document&&/^am /.test(j.document)){toast("✓ În program: "+j.document);inZbor--;await incarca(true,true);inZbor++;}
-    else{state.data.statusuri[j.zi]=j.statusuri;store.set("po.data",state.data);if(j.document)toast("Program: "+j.document);}
+    j=await postScript({zi:it.dayId,id:it.id,actiune,valoare});
   }catch(e){
     toast("Nu s-a salvat: "+(e.message&&!/fetch|network|load/i.test(e.message)?e.message:"fără semnal")+". Încearcă din nou.");
-    inZbor--;await incarca();return;
+    inZbor--;gen++;await incarca(true,true);return;
   }
-  inZbor--;render();reimprospateazaDetaliu(it.id);
+  inZbor--;
+  if(j.scris){ // scris în program: cerem programul nou (gata la script) — statusurile și programul vin împreună
+    toast("✓ În program: "+j.document);
+    if(inZbor===0) await incarca(true,true);
+    return;
+  }
+  if(inZbor===0){state.data.statusuri[j.zi]=j.statusuri;if(j.v)state.data.v=null;store.set("po.data",state.data);}
+  if(j.document) toast("Program: "+j.document);
+  render();reimprospateazaDetaliu(it.id);
+  if(inZbor===0) incarca(true,true);
 }
 function reimprospateazaDetaliu(id){
   const sh=$("#sheet");if(sh.classList.contains("open")&&sh.dataset.id===id) openDetail(id);
@@ -880,7 +906,7 @@ function arataLogin(msg){
       seteazaSesiune(j);
       $("#fParola").value="";$("#fParola2").value="";$("#fCod").value="";
       $("#setup").hidden=true;state.data=null;
-      await incarca();setTimeout(()=>reaboneaza(true),1500);
+      await incarca();pornesteSemnal();setTimeout(()=>reaboneaza(true),1500);
     }catch(x){
       err(x.message&&!/fetch|network|load/i.test(x.message)?x.message:"Nu mă pot conecta. Verifică semnalul.");
     }finally{deseneaza();}
@@ -983,8 +1009,21 @@ function deschideDinLink(){
   renderDays();render();openDetail(it.id);
 }
 window.addEventListener("hashchange",()=>{citesteLink();deschideDinLink();});
-document.addEventListener("visibilitychange",()=>{if(!document.hidden)incarca();});
-setInterval(()=>{if(!document.hidden)incarca();},10000);
+// Semnalul în timp real (Firebase Realtime Database): scriptul anunță „s-a schimbat” (fără date) și cerem imediat.
+// Conexiunea stă deschisă doar cât aplicația e pe ecran; verificarea la 5 s rămâne ca plasă de siguranță.
+const URL_SEMNAL="https://program-oradea-default-rtdb.europe-west1.firebasedatabase.app/semnal.json";
+let semnal=null;
+function pornesteSemnal(){
+  if(semnal||!state.token||!window.EventSource||document.hidden) return;
+  try{
+    semnal=new EventSource(URL_SEMNAL);
+    const primit=e=>{try{const d=JSON.parse(e.data),v=d&&d.data&&d.data.v;if(v&&(!state.data||v!==state.data.v))incarca(true,true);}catch(x){}};
+    semnal.addEventListener("put",primit);semnal.addEventListener("patch",primit);
+  }catch(e){semnal=null;}
+}
+function opresteSemnal(){if(semnal){semnal.close();semnal=null;}}
+document.addEventListener("visibilitychange",()=>{if(document.hidden)opresteSemnal();else{pornesteSemnal();incarca();}});
+setInterval(()=>{if(!document.hidden)incarca();},5000);
 setInterval(subtitlu,30000);
 
 // Pornire. Cheia se poate da și printr-un link de configurare: ...#k=CHEIA (nu ajunge la server).
@@ -993,7 +1032,7 @@ $("#meBtn").textContent=numeAfisat(state.me)||"Eu";
 citesteLink();
 pregateste();renderDays();render();deschideDinLink();
 stareClopotel();
-if(!state.token) arataLogin(); else {incarca();setTimeout(()=>reaboneaza(false),3000);}
+if(!state.token) arataLogin(); else {incarca();pornesteSemnal();setTimeout(()=>reaboneaza(false),3000);}
 
 // Înălțimea ecranului: pe iPhone, în aplicația instalată pe ecran, iOS raportează uneori un ecran mai scurt
 // cu bara de stare (fâșie goală jos). Atunci folosim înălțimea reală a ecranului telefonului.
