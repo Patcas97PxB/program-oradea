@@ -241,7 +241,18 @@ button.b-act{cursor:pointer}
 .d-li small{display:block;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .d-li b{font-size:14.5px;font-weight:700;overflow-wrap:anywhere}
 .d-mini{border:1px solid var(--line);background:var(--surface-3);color:var(--fg);font:800 12.5px var(--f-ui);border-radius:10px;padding:8px 11px;white-space:nowrap}
-.picker-row.aproape{border-color:#3b82f6;background:rgba(59,130,246,.14)}
+
+.panou{background:#05070c;border:1px solid #1d2433;border-radius:14px;overflow:hidden;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;flex:none}
+.panou-titlu{display:flex;justify-content:space-between;align-items:baseline;padding:12px 12px 10px;font:800 15px var(--f-ui);letter-spacing:.06em;color:#fff}
+.panou-titlu small{font-size:12px;color:#64748b;letter-spacing:0}
+.panou-cap,.panou-rd{display:grid;grid-template-columns:48px 70px minmax(0,1fr) auto;gap:8px;padding:9px 12px;align-items:center}
+.panou-cap{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:#64748b;border-top:1px solid #1d2433;border-bottom:1px solid #1d2433}
+.panou-rd{min-height:44px;font-size:13.5px;font-weight:700;color:#fcd34d;border-bottom:1px solid #121826;text-decoration:none}
+.panou-rd:last-child{border-bottom:0}
+.panou-rd span:nth-child(3){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fde68a}
+.panou-rd .x{font-size:11.5px;color:#94a3b8;text-align:right;white-space:nowrap}
+.panou-rd .x.ok{color:#4ade80}.panou-rd .x.est{color:#7dd3fc}
+.panou-gol{padding:14px 12px 16px;font:600 13.5px var(--f-ui);color:#94a3b8;line-height:1.5;border-top:1px solid #1d2433}
 .picker-row .sz{font-style:normal;font-size:13px;font-weight:800;color:var(--muted);white-space:nowrap;background:transparent;border:0;padding:0;box-shadow:none}
 .picker-row .sz.ok{color:#22c55e}.picker-row .sz.est{color:#7dd3fc}
 .zb{display:block;margin-top:4px;font-size:13px;font-weight:700;color:#7dd3fc;line-height:1.4}
@@ -397,7 +408,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v52";
+const VERSIUNE_APP = "18.10 · v53";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -730,9 +741,9 @@ function openDetail(id,synced){
      <div class="d-lista">
        ${li("om","Client",it.client)}${li("info","Firmă",it.company)}
        ${callable.length===1?li("tel","Telefon",callable[0].a||callable[0].t):""}
-       ${li("avion","Zbor",it.flight,it.flight?`<button class="d-mini" type="button" id="dZbor">🛬 Când aterizează?</button>`:"")}
-       ${it.from?li("pin",it.to?"Oprirea 1":"Adresa",it.from,laAeroport(it)&&/aeroport|airport/i.test(it.from)?`<button class="d-mini" type="button" id="dSosiri">🛬 Sosiri</button>`:""):""}${it.to?li("pin",it.from?"Oprirea 2":"Adresa",it.to):""}
-       ${li("pin","Locație",loc,laAeroport(it)?`<button class="d-mini" type="button" id="dSosiri">🛬 Sosiri</button>`:"")}${it.res?li("bilet","Rezervare",it.res,tipPv(it)?`<button class="d-mini" type="button" id="dPv">PV ↗</button>`:""):tipPv(it)==="exchange"?li("bilet","Exchange","PV exchange",`<button class="d-mini" type="button" id="dPv">PV ↗</button>`):""}${li("scut","RCA",rca)}${li("info","Detalii",it.info)}
+       ${li("avion","Zbor",it.flight,it.flight?`<button class="d-mini" type="button" id="dZbor">Când aterizează?</button>`:"")}
+       ${it.from?li("pin",it.to?"Oprirea 1":"Adresa",it.from,laAeroport(it)&&/aeroport|airport/i.test(it.from)?`<button class="d-mini" type="button" id="dSosiri">Sosiri</button>`:""):""}${it.to?li("pin",it.from?"Oprirea 2":"Adresa",it.to):""}
+       ${li("pin","Locație",loc,laAeroport(it)?`<button class="d-mini" type="button" id="dSosiri">Sosiri</button>`:"")}${it.res?li("bilet","Rezervare",it.res,tipPv(it)?`<button class="d-mini" type="button" id="dPv">PV ↗</button>`:""):tipPv(it)==="exchange"?li("bilet","Exchange","PV exchange",`<button class="d-mini" type="button" id="dPv">PV ↗</button>`):""}${li("scut","RCA",rca)}${li("info","Detalii",it.info)}
        ${li("echipa","Echipa",echipa,pornit)}
      </div>
      ${mine&&!done?`<button class="link-btn" type="button" data-act="drop">Renunț la intervenție</button>`:""}
@@ -994,7 +1005,7 @@ async function cautaZbor(zbor,btn){
     else if(z.real) t=`✓ A aterizat la ${oraRo(z.real)}${z.de_la?" · din "+esc(z.de_la):""}`;
     else{
       const ora=z.est||z.prog, min=Math.round((ora*1000-Date.now())/60000), intarziere=z.est&&z.prog?Math.round((z.est-z.prog)/60):0;
-      t=`🛬 ${z.est?"Aterizează":"Programat"} la ${oraRo(ora)}${min>0?` · în ${min<60?min+" min":Math.floor(min/60)+" h "+(min%60)+" min"}`:""}${intarziere>4?` · +${intarziere} min întârziere`:""}${z.de_la?" · din "+esc(z.de_la):""}${z.est?"":" (fără estimare încă)"}`;
+      t=`${z.est?"Aterizează":"Programat"} la ${oraRo(ora)}${min>0?` · în ${min<60?min+" min":Math.floor(min/60)+" h "+(min%60)+" min"}`:""}${intarziere>4?` · +${intarziere} min întârziere`:""}${z.de_la?" · din "+esc(z.de_la):""}${z.est?"":" (fără estimare încă)"}`;
     }
     info.innerHTML=`${t} · <a href="${fr}" target="_blank" rel="noopener">pe hartă ↗</a>`;
   }catch(e){info.textContent="Nu pot afla acum zborul. Încearcă din nou.";}
@@ -1010,20 +1021,14 @@ async function sosiriZiua(it,btn){
   catch(e){btn.disabled=false;btn.textContent=txt;toast("Nu pot afla acum sosirile. Încearcă din nou.");return;}
   btn.disabled=false;btn.textContent=txt;
   const lista=(j.sosiri||[]).filter(z=>z.prog&&ziRo(z.prog)===it.dayId).sort((a,b)=>a.prog-b.prog);
-  const [hh,mm]=(it.t||"").split(":").map(Number), tinta=it.t?hh*60+mm:null;
-  const minRo=s=>{const [h,m]=oraRo(s).split(":").map(Number);return h*60+m;};
-  const rand=z=>{
-    const ora=z.real||z.est||z.prog, dif=z.est&&z.prog?Math.round((z.est-z.prog)/60):0, min=Math.round((ora*1000-Date.now())/60000);
-    const stare=z.real?`<i class="sz ok">✓ ${oraRo(z.real)}</i>`:z.est?`<i class="sz est">${oraRo(z.est)}${dif>4?" +"+dif:""}${min>0&&min<180?` · ${min} min`:""}</i>`:`<i class="sz">programat</i>`;
-    const aproape=tinta!=null&&Math.abs(minRo(z.prog)-tinta)<=90;
-    return `<a class="picker-row${aproape?" aproape":""}" href="https://www.flightradar24.com/data/flights/${esc(z.nr.toLowerCase())}" target="_blank" rel="noopener">
-      <span><b>${oraRo(z.prog)} · ${esc(z.nr||"—")}</b><small>din ${esc(z.de_la||"?")}</small></span>${stare}</a>`;
-  };
+  const stare=z=>z.real?`<span class="x ok">ATERIZAT ${oraRo(z.real)}</span>`:z.est?`<span class="x est">EST ${oraRo(z.est)}</span>`:`<span class="x">PROGRAMAT</span>`;
   const p=$("#picker");
   p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Sosiri Aeroport Oradea">
-    <div class="picker-title">🛬 Sosiri Aeroport Oradea · ${esc(it.dayD||it.dayId)}</div>
-    <div class="picker-text">${lista.length?`Ora programată · zborul · ora reală sau estimată${it.t?`. Evidențiate: în jur de <b>${esc(it.t)}</b>`:""}.`:"FlightRadar24 nu are încă sosirile pentru ziua asta (le publică de obicei cu 1–2 zile înainte)."}</div>
-    ${lista.map(rand).join("")}
+    <div class="panou"><div class="panou-titlu">SOSIRI · ORADEA<small>${esc(it.dayD||it.dayId)}</small></div>
+      ${lista.length?`<div class="panou-cap"><span>ORA</span><span>ZBOR</span><span>DIN</span><span>STARE</span></div>
+      ${lista.map(z=>`<a class="panou-rd" href="https://www.flightradar24.com/data/flights/${esc((z.nr||"").toLowerCase())}" target="_blank" rel="noopener"><span>${oraRo(z.prog)}</span><span>${esc(z.nr||"—")}</span><span>${esc((z.de_la||"?").toUpperCase())}</span>${stare(z)}</a>`).join("")}`
+      :`<div class="panou-gol">FlightRadar24 nu are încă sosirile pentru ziua asta (le publică de obicei cu 1–2 zile înainte).</div>`}
+    </div>
     <button class="picker-cancel" type="button">Închide</button></div>`;
   p.hidden=false;
   p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
