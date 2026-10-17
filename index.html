@@ -81,6 +81,12 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .picker-text b{color:var(--fg)}
 .me-btn{height:38px;border-radius:11px;border:1px solid var(--line);background:var(--surface-3);padding:0 12px;font-weight:800;font-size:14px}
 .search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 10px}
+.rand-cauta{display:flex;gap:8px}.rand-cauta .search{flex:1;min-width:0}
+.btn-zboruri{width:46px;min-height:44px;flex:none;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:#7dd3fc;display:grid;place-items:center}
+.btn-zboruri svg{width:19px;height:19px}
+.panou-file{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;margin:0 12px 10px;border-radius:10px;background:#0d1220;border:1px solid #1d2433}
+.panou-file button{min-height:36px;border:0;border-radius:7px;background:transparent;color:#94a3b8;font:800 13px var(--f-ui);letter-spacing:.06em}
+.panou-file button[aria-pressed="true"]{background:#1d2433;color:#fcd34d}
 .search:focus-within{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(37,99,235,.25)}
 .search svg{width:18px;height:18px;color:var(--muted);flex:none}
 .search input{flex:1;min-width:0;border:0;background:transparent;color:var(--fg);font-size:16px;padding:10px 0;outline:none}
@@ -366,10 +372,13 @@ button.b-act{cursor:pointer}
       </div>
     </div>
     <div class="banner-err" id="err" hidden></div>
+    <div class="rand-cauta">
     <div class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Caută: nr. auto, nume, RZO, telefon…" autocomplete="off" aria-label="Caută intervenții">
+      <input id="q" type="search" placeholder="Caută: nr. auto, nume, RZO…" autocomplete="off" aria-label="Caută intervenții">
       <button id="qClear" type="button" aria-label="Șterge căutarea" hidden>×</button>
+    </div>
+    <button class="btn-zboruri" id="btnZboruri" type="button" aria-label="Zborurile Aeroportului Oradea"></button>
     </div>
     <div class="days" id="days" role="group" aria-label="Ziua"></div>
   </header>
@@ -410,7 +419,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v54";
+const VERSIUNE_APP = "18.10 · v55";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -769,7 +778,7 @@ function openDetail(id,synced){
   const r=$("#dRfr"); if(r) r.onclick=()=>toggleRfr(it.id);
   const pv=$("#dPv"); if(pv) pv.onclick=()=>deschidePv(it.res,tipPv(it));
   const zb=$("#dZbor"); if(zb) zb.onclick=()=>cautaZbor(it.flight,zb);
-  const so=$("#dSosiri"); if(so) so.onclick=()=>sosiriZiua(it,so);
+  const so=$("#dSosiri"); if(so) so.onclick=()=>panouZboruri(it.dayId,it.dayD,"sosiri",so);
   $("#callBtn").addEventListener("click",e=>{if(callable.length>1){e.preventDefault();openPicker(callable);}});
 }
 
@@ -1016,23 +1025,32 @@ async function cautaZbor(zbor,btn){
 // Predări / transferuri la aeroport: toate sosirile din ziua intervenției
 const laAeroport=it=>(it.type==="predare"||it.type==="transfer")&&/aeroport|airport/i.test([it.loc,it.from,it.raw].join(" "));
 const ziRo=s=>new Date(s*1000).toLocaleDateString("sv-SE",{timeZone:"Europe/Bucharest"});
-async function sosiriZiua(it,btn){
-  btn.disabled=true;const txt=btn.innerHTML;btn.innerHTML=DI.avion+"Caut…";
+// Panoul aeroportului: sosiri / plecări din ziua aleasă (doar zborurile zilei)
+const ZBORURI={};                                     // ultimele răspunsuri, pe tip
+async function iaZboruri(tip){
+  const r=await fetch(URL_ZBORURI+(tip==="plecari"?"?tip=plecari":""),{cache:"no-store"}), j=await r.json();
+  if(j.eroare) throw new Error(j.eroare);
+  return ZBORURI[tip]=j;
+}
+async function panouZboruri(zi,ziAfisata,tip="sosiri",btn){
+  const txt=btn&&btn.innerHTML; if(btn){btn.disabled=true;if(btn.id!=="btnZboruri")btn.innerHTML=DI.avion+"Caut…";}
   let j;
-  try{const r=await fetch(URL_ZBORURI,{cache:"no-store"});j=await r.json();if(j.eroare)throw new Error(j.eroare);}
-  catch(e){btn.disabled=false;btn.innerHTML=txt;toast("Nu pot afla acum sosirile. Încearcă din nou.");return;}
-  btn.disabled=false;btn.innerHTML=txt;
-  const lista=(j.sosiri||[]).filter(z=>z.prog&&ziRo(z.prog)===it.dayId).sort((a,b)=>a.prog-b.prog);
-  const stare=z=>z.real?`<span class="x ok">ATERIZAT ${oraRo(z.real)}</span>`:z.est?`<span class="x est">EST ${oraRo(z.est)}</span>`:`<span class="x">PROGRAMAT</span>`;
+  try{j=await iaZboruri(tip);}catch(e){if(btn){btn.disabled=false;btn.innerHTML=txt;}toast("Nu pot afla acum zborurile. Încearcă din nou.");return;}
+  if(btn){btn.disabled=false;btn.innerHTML=txt;}
+  const pl=tip==="plecari";
+  const lista=(j.sosiri||[]).filter(z=>z.prog&&ziRo(z.prog)===zi).sort((a,b)=>a.prog-b.prog);
+  const stare=z=>z.real?`<span class="x ok">${pl?"DECOLAT":"ATERIZAT"} ${oraRo(z.real)}</span>`:z.est?`<span class="x est">EST ${oraRo(z.est)}</span>`:`<span class="x">PROGRAMAT</span>`;
   const p=$("#picker");
-  p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Sosiri Aeroport Oradea">
-    <div class="panou"><div class="panou-titlu">SOSIRI · ORADEA<small>${esc(it.dayD||it.dayId)}</small></div>
-      ${lista.length?`<div class="panou-cap"><span>ORA</span><span>ZBOR</span><span>DIN</span><span>STARE</span></div>
-      ${lista.map(z=>`<a class="panou-rd" href="https://www.flightradar24.com/data/flights/${esc((z.nr||"").toLowerCase())}" target="_blank" rel="noopener"><span>${oraRo(z.prog)}</span><span>${esc(z.nr||"—")}</span><span>${esc((z.de_la||"?").toUpperCase())}</span>${stare(z)}</a>`).join("")}`
-      :`<div class="panou-gol">FlightRadar24 nu are încă sosirile pentru ziua asta (le publică de obicei cu 1–2 zile înainte).</div>`}
+  p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Zborurile Aeroportului Oradea">
+    <div class="panou"><div class="panou-titlu">${pl?"PLECĂRI":"SOSIRI"} · ORADEA<small>${esc(ziAfisata||zi)}</small></div>
+      <div class="panou-file"><button type="button" data-tip="sosiri" aria-pressed="${!pl}">SOSIRI</button><button type="button" data-tip="plecari" aria-pressed="${pl}">PLECĂRI</button></div>
+      ${lista.length?`<div class="panou-cap"><span>ORA</span><span>ZBOR</span><span>${pl?"SPRE":"DIN"}</span><span>STARE</span></div>
+      ${lista.map(z=>`<a class="panou-rd" href="https://www.flightradar24.com/data/flights/${esc((z.nr||"").toLowerCase())}" target="_blank" rel="noopener"><span>${oraRo(z.prog)}</span><span>${esc(z.nr||"—")}</span><span>${esc(((pl?z.spre:z.de_la)||"?").toUpperCase())}</span>${stare(z)}</a>`).join("")}`
+      :`<div class="panou-gol">FlightRadar24 nu are încă ${pl?"plecările":"sosirile"} pentru ziua asta (le publică de obicei cu 1–2 zile înainte).</div>`}
     </div>
     <button class="picker-cancel" type="button">Închide</button></div>`;
   p.hidden=false;
+  p.querySelectorAll("[data-tip]").forEach(x=>x.onclick=()=>{if(x.dataset.tip!==tip)panouZboruri(zi,ziAfisata,x.dataset.tip);});
   p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
   p.onclick=e=>{if(e.target===p)p.hidden=true;};
 }
@@ -1104,6 +1122,9 @@ function arataLogin(msg){
 }
 
 // ---------- Evenimente ----------
+$("#btnZboruri").innerHTML=DI.avion;
+$("#btnZboruri").onclick=()=>{const d=DAYS.find(x=>x.id===state.day)||DAYS[0];const azi=new Date().toLocaleDateString("sv-SE",{timeZone:"Europe/Bucharest"});
+  panouZboruri(d?d.id:azi,d?d.d:"",undefined,$("#btnZboruri"));};
 $("#days").onclick=e=>{const b=e.target.closest("[data-id],[data-all]");if(!b)return;if(b.dataset.all){cereTot();return;}if(vreauTot())state.totPana=Date.now()+10*60000;state.day=b.dataset.id;renderDays();render();$("#list").scrollTop=0;};
 $("#list").onclick=e=>{
   const t=e.target.closest("[data-take]");if(t){takeFromCard(t.dataset.take);return;}
