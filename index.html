@@ -57,7 +57,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 /* Antet */
 .top{background:rgba(7,11,20,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line-soft);
-  padding:calc(var(--sat) + 12px) 16px 12px;display:flex;flex-direction:column;gap:11px}
+  padding:calc(var(--sat) + 22px) 16px 12px;display:flex;flex-direction:column;gap:11px}
 .top-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .brand{font-weight:800;font-size:20px;letter-spacing:-.01em;min-width:0}
 .brand small{display:block;font-weight:500;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -95,7 +95,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .banner-err{background:var(--service-bg);color:#ffb3c1;border:1px solid rgba(255,77,109,.35);border-radius:10px;padding:8px 10px;font-size:13px;font-weight:600}
 
 /* Listă */
-.list{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 12px calc(var(--sab) + 28px);display:flex;flex-direction:column;gap:12px}
+.list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 12px 18px;display:flex;flex-direction:column;gap:12px}
 .list>*{flex:none}
 .count{font-size:11px;color:var(--muted);padding:0 4px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
 /* Cartonașul „bilet”, toate de aceeași înălțime: sus ora/tipul/rezervarea (stânga) și plăcuța (dreapta);
@@ -183,6 +183,7 @@ button.b-act{cursor:pointer}
 .card-take.finish{background:var(--predare);animation:none;color:var(--on-ok);box-shadow:0 8px 20px -10px rgba(34,197,94,.9)}
 .card-take.join::after,.card-take.finish::after{display:none}
 .empty{text-align:center;color:var(--muted);padding:40px 20px}
+.subsol{flex:none;text-align:center;font-size:9.5px;letter-spacing:.02em;color:var(--muted);opacity:.38;padding:5px 12px calc(var(--sab) + 5px);background:var(--bg);border-top:1px solid var(--line-soft)}
 .credit{flex:none;text-align:center;color:var(--muted);opacity:.65;font-size:11.5px;line-height:1.5;padding:18px 12px 6px;margin:0}
 .info-date{max-height:60vh;overflow-y:auto;font-size:13.5px;line-height:1.55;color:var(--muted);padding:0 4px}
 .info-date h4{color:#fff;font-size:13.5px;margin:12px 0 3px}
@@ -191,7 +192,7 @@ button.b-act{cursor:pointer}
 /* Detalii */
 .sheet{position:absolute;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 .sheet.open{transform:none}
-.sheet-head{background:linear-gradient(180deg,var(--t-bg),transparent),var(--bg-deep);padding:calc(var(--sat) + 10px) 16px 18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line-soft)}
+.sheet-head{background:linear-gradient(180deg,var(--t-bg),transparent),var(--bg-deep);padding:calc(var(--sat) + 22px) 16px 18px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line-soft)}
 .back{align-self:flex-start;border:0;background:transparent;font-weight:700;color:var(--muted);padding:6px 0;font-size:15px}
 .type-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--t)}
 .type-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor}
@@ -303,6 +304,7 @@ button.b-act{cursor:pointer}
   </header>
 
   <main class="list" id="list"></main>
+  <div class="subsol" id="subsol"></div>
   <section class="sheet" id="sheet" aria-label="Detalii intervenție"></section>
   <div class="picker" id="picker" hidden></div>
   <div class="toast" id="toast" role="status"></div>
@@ -337,7 +339,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "17.10 · v35";
+const VERSIUNE_APP = "17.10 · v36";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -427,7 +429,7 @@ async function incarca(manual,faraMesaj){
   if(!state.token) return;
   if(state.loading){dinNou=true;return;}     // vine imediat după cererea în curs
   if(!manual&&inZbor>0) return;              // o apăsare încă se salvează; după ea se cere oricum
-  state.loading=true;$("#refresh").classList.add("loading");
+  state.loading=true;if(manual&&!faraMesaj)$("#refresh").classList.add("loading");
   const g=gen, tot=vreauTot();
   try{
     // v = versiunea pe care o avem: dacă nu s-a schimbat nimic, scriptul răspunde doar „neschimbat”
@@ -607,7 +609,7 @@ function render(){
   const empty=searching?`Nimic găsit pentru „${esc(q)}”.`
     :{mine:`Nicio intervenție pentru ${esc(numeAfisat(state.me))} în ${d.d}.<br>Vezi „Libere” ca să-ți iei una.`,
       free:`Toate intervențiile din ${d.d} au pe cineva.`,all:`Nicio intervenție în ${d.d}.`}[state.filter];
-  $("#list").innerHTML=items.length?`<div class="count">${head}</div>`+items.map(it=>card(it,searching)).join("")+`<p class="credit">${DREPTURI}</p>`:`<div class="count">${head}</div><div class="empty">${empty}</div>`;
+  $("#list").innerHTML=items.length?`<div class="count">${head}</div>`+items.map(it=>card(it,searching)).join(""):`<div class="count">${head}</div><div class="empty">${empty}</div>`;
 }
 
 const contacts=it=>it.contacts.length?it.contacts:[];
@@ -959,6 +961,10 @@ $("#list").onclick=e=>{
 $("#q").addEventListener("input",e=>{state.q=e.target.value;$("#qClear").hidden=!state.q;if(state.q.trim())cereTot();render();});
 $("#qClear").onclick=()=>{state.q="";$("#q").value="";$("#qClear").hidden=true;render();};
 $("#refresh").onclick=()=>incarca(true);
+$("#subsol").textContent=DREPTURI;
+// Fundalul stă pe loc: se derulează doar lista, detaliile și ferestrele; restul ecranului nu „trage” pagina.
+const DERULABILE=".list,.sheet-body,.setup,.picker,.picker-card,.info-date,.days";
+document.addEventListener("touchmove",e=>{if(!e.target.closest(DERULABILE))e.preventDefault();},{passive:false});
 $("#meBtn").onclick=meniuCont;
 
 // ---------- Notificări ----------
