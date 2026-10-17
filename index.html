@@ -385,7 +385,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "17.10 · v42";
+const VERSIUNE_APP = "17.10 · v43";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -714,7 +714,7 @@ function openDetail(id,synced){
        ${callable.length===1?li("tel","Telefon",callable[0].a||callable[0].t):""}
        ${li("avion","Zbor",it.flight)}
        ${it.from?li("pin",it.to?"Oprirea 1":"Adresa",it.from):""}${it.to?li("pin",it.from?"Oprirea 2":"Adresa",it.to):""}
-       ${li("pin","Locație",loc)}${li("bilet","Rezervare",it.res,it.res&&(it.type==="predare"||it.type==="preluare")?`<button class="d-mini" type="button" id="dPv">PV ↗</button>`:"")}${li("scut","RCA",rca)}${li("info","Detalii",it.info)}
+       ${li("pin","Locație",loc)}${it.res?li("bilet","Rezervare",it.res,tipPv(it)?`<button class="d-mini" type="button" id="dPv">PV ↗</button>`:""):tipPv(it)==="exchange"?li("bilet","Exchange","PV exchange",`<button class="d-mini" type="button" id="dPv">PV ↗</button>`):""}${li("scut","RCA",rca)}${li("info","Detalii",it.info)}
        ${li("echipa","Echipa",echipa,pornit)}
      </div>
      ${mine&&!done?`<button class="link-btn" type="button" data-act="drop">Renunț la intervenție</button>`:""}
@@ -736,7 +736,7 @@ function openDetail(id,synced){
   $("#back").onclick=()=>sh.classList.remove("open");
   sh.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>act(it,b.dataset.act));
   const r=$("#dRfr"); if(r) r.onclick=()=>toggleRfr(it.id);
-  const pv=$("#dPv"); if(pv) pv.onclick=()=>deschidePv(it.res,it.type);
+  const pv=$("#dPv"); if(pv) pv.onclick=()=>deschidePv(it.res,tipPv(it));
   $("#callBtn").addEventListener("click",e=>{if(callable.length>1){e.preventDefault();openPicker(callable);}});
 }
 
@@ -948,10 +948,11 @@ const ACTIUNI={take:"iau",drop:"renunt",start:"pornit",done:"finalizat",undo:"an
 function act(it,a){trimite(it,ACTIUNI[a]);}
 let toastTimer=null;
 // PV-ul de pe pv.autonomservices.ro: copiază rezervarea (de lipit în căutare) și deschide site-ul
-// direct pe pagina de căutare de la Predare / Preluare
-const PV_URL={predare:"https://pv.autonomservices.ro/predare.php",preluare:"https://pv.autonomservices.ro/preluare.php"};
+// direct pe pagina de căutare de la Predare / Preluare / Exchange („EXCHANGE LA B…” în rând)
+const PV_URL={predare:"https://pv.autonomservices.ro/predare.php",preluare:"https://pv.autonomservices.ro/preluare.php",exchange:"https://pv.autonomservices.ro/exchange.php"};
+const tipPv=it=>/EXCHANGE/i.test(it.raw)?"exchange":(it.type==="predare"||it.type==="preluare")?it.type:null;
 function deschidePv(res,tip){
-  try{navigator.clipboard.writeText(res).then(()=>toast(res+" copiat · lipește-l la căutare"),()=>{});}catch(e){}
+  if(res)try{navigator.clipboard.writeText(res).then(()=>toast(res+" copiat · lipește-l la căutare"),()=>{});}catch(e){}
   window.open(PV_URL[tip]||"https://pv.autonomservices.ro/","_blank","noopener");
 }
 function toast(msg,undo){
