@@ -188,11 +188,11 @@ button.b-act{cursor:pointer}
 .plate i,.pl i{width:1.05em;padding:0!important;font-size:inherit!important;background:#003399 url("data:image/svg+xml,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 20 20%22 fill%3D%22%23ffcc00%22%3E%3Cpolygon points%3D%2216.00,8.55 16.36,9.51 17.38,9.55 16.58,10.19 16.85,11.17 16.00,10.61 15.15,11.17 15.42,10.19 14.62,9.55 15.64,9.51%22%2F%3E%3Cpolygon points%3D%2215.20,11.55 15.55,12.51 16.58,12.55 15.78,13.19 16.05,14.17 15.20,13.61 14.34,14.17 14.62,13.19 13.82,12.55 14.84,12.51%22%2F%3E%3Cpolygon points%3D%2213.00,13.75 13.36,14.70 14.38,14.75 13.58,15.38 13.85,16.37 13.00,15.81 12.15,16.37 12.42,15.38 11.62,14.75 12.64,14.70%22%2F%3E%3Cpolygon points%3D%2210.00,14.55 10.36,15.51 11.38,15.55 10.58,16.19 10.85,17.17 10.00,16.61 9.15,17.17 9.42,16.19 8.62,15.55 9.64,15.51%22%2F%3E%3Cpolygon points%3D%227.00,13.75 7.36,14.70 8.38,14.75 7.58,15.38 7.85,16.37 7.00,15.81 6.15,16.37 6.42,15.38 5.62,14.75 6.64,14.70%22%2F%3E%3Cpolygon points%3D%224.80,11.55 5.16,12.51 6.18,12.55 5.38,13.19 5.66,14.17 4.80,13.61 3.95,14.17 4.22,13.19 3.42,12.55 4.45,12.51%22%2F%3E%3Cpolygon points%3D%224.00,8.55 4.36,9.51 5.38,9.55 4.58,10.19 4.85,11.17 4.00,10.61 3.15,11.17 3.42,10.19 2.62,9.55 3.64,9.51%22%2F%3E%3Cpolygon points%3D%224.80,5.55 5.16,6.51 6.18,6.55 5.38,7.19 5.66,8.17 4.80,7.61 3.95,8.17 4.22,7.19 3.42,6.55 4.45,6.51%22%2F%3E%3Cpolygon points%3D%227.00,3.35 7.36,4.31 8.38,4.36 7.58,4.99 7.85,5.98 7.00,5.41 6.15,5.98 6.42,4.99 5.62,4.36 6.64,4.31%22%2F%3E%3Cpolygon points%3D%2210.00,2.55 10.36,3.51 11.38,3.55 10.58,4.19 10.85,5.17 10.00,4.61 9.15,5.17 9.42,4.19 8.62,3.55 9.64,3.51%22%2F%3E%3Cpolygon points%3D%2213.00,3.35 13.36,4.31 14.38,4.36 13.58,4.99 13.85,5.98 13.00,5.41 12.15,5.98 12.42,4.99 11.62,4.36 12.64,4.31%22%2F%3E%3Cpolygon points%3D%2215.20,5.55 15.55,6.51 16.58,6.55 15.78,7.19 16.05,8.17 15.20,7.61 14.34,8.17 14.62,7.19 13.82,6.55 14.84,6.51%22%2F%3E%3C%2Fsvg%3E") center 42%/0.82em no-repeat}
 .plate.big b{padding:8px 12px 7px}
 /* codul țării sub stele (RO / HU) */
-.plate i{justify-content:center;background-position:center 20%!important;background-size:.72em!important}
-.plate i em{font-style:normal;font-size:.38em;font-weight:700;line-height:1;padding-bottom:.18em;color:#fff}
+.plate i{justify-content:center;background-position:center 16%!important;background-size:.72em!important}
+.plate i em{font-style:normal;font-size:.38em;font-weight:700;line-height:1;padding-bottom:.42em;color:#fff}
 .plate i:not(:has(em)){background-position:center 42%!important;background-size:.82em!important}
 /* plăcuța mare: banda dealerului jos, ca pe mașini */
-.plate.big{flex-direction:column;overflow:hidden}
+.plate{flex-direction:column;overflow:hidden}
 .pl-r{display:flex;align-items:stretch}
 /* banda dealerului: făcută în Canva după plăcuța reală (logo + scris oficial Autonom), banda-autonom.png */
 .pl-dealer{display:block;aspect-ratio:26/1;font-size:0;color:transparent;border-top:1px solid #d6d9e0;background:#fff url(banda-autonom.png) center/100% 100% no-repeat}
@@ -394,7 +394,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "17.10 · v46";
+const VERSIUNE_APP = "17.10 · v47";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -444,7 +444,8 @@ const NR_RO=/^([A-Z]{1,2})(\d{2,3})([A-Z]{3})$/, NR_HU=/^([A-Z]{3,4})(\d{3})$/;
 const formatNr=p=>{p=p||"";let m=NR_RO.exec(p);if(m)return m[1]+" "+m[2]+" "+m[3];m=NR_HU.exec(p);return m?m[1]+"-"+m[2]:p;};
 const taraNr=p=>NR_RO.test(p||"")?"RO":NR_HU.test(p||"")?"HU":"";
 const bandaUE=p=>{const t=taraNr(p);return `<i>${t?`<em>${t}</em>`:""}</i>`;};
-const plate=(p,big)=>p?(big?`<span class="plate big"><span class="pl-r">${bandaUE(p)}<b>${esc(formatNr(p))}</b></span><span class="pl-dealer">AUTONOM</span></span>`:`<span class="plate">${bandaUE(p)}<b>${esc(formatNr(p))}</b></span>`):`<span class="plate none${big?" big":""}"><b>fără nr.</b></span>`;
+const placutaHtml=(p,cls)=>`<span class="plate${cls}"><span class="pl-r">${bandaUE(p)}<b>${esc(formatNr(p))}</b></span><span class="pl-dealer">Autonom</span></span>`;
+const plate=(p,big)=>p?placutaHtml(p,big?" big":""):`<span class="plate none${big?" big":""}"><b>fără nr.</b></span>`;
 const compact=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[\s.\-\/()+,]/g,"");
 const numeAfisat=cod=>(colegi().find(p=>p[0]===cod)||[cod,cod])[1];
 
@@ -586,7 +587,7 @@ function chips(it){
   return c.join("");
 }
 const RE_PLACUTA=/\b(?:B\s?\d{2,3}|[A-Z]{2}\s?\d{2})\s?[A-Z]{3}\b|\b[A-Z]{4}\d{3}\b|\b[A-Z]{3}-\d{3}\b/g;
-const placutaMica=p=>`<span class="plate mini"><i></i><b>${esc(formatNr(p.replace(/[\s-]/g,"")))}</b></span>`;
+const placutaMica=p=>placutaHtml(p.replace(/[\s-]/g,"")," mini");
 // „DE DUS LA PRO TYRES B384AUT” → „De dus la pro tyres [B 384 AUT]”: majusculele devin text normal, mașinile rămân plăcuțe
 function textSarcina(it){
   let t=it.raw.replace(/^\s*[\d:?.\-–!]+\s*[-,]?\s*/,"").replace(tail(),"").replace(/^[\s\-–,]+|[\s\-–,]+$/g,"");
