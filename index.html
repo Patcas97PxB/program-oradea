@@ -241,6 +241,8 @@ button.b-act{cursor:pointer}
 .d-li small{display:block;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .d-li b{font-size:14.5px;font-weight:700;overflow-wrap:anywhere}
 .d-mini{border:1px solid var(--line);background:var(--surface-3);color:var(--fg);font:800 12.5px var(--f-ui);border-radius:10px;padding:8px 11px;white-space:nowrap}
+.zb{display:block;margin-top:4px;font-size:13px;font-weight:700;color:#7dd3fc;line-height:1.4}
+.zb a{color:#a5b4fc}
 .d-mini[aria-pressed="true"]{background:rgba(37,99,235,.25);border-color:#3b82f6;color:#dbeafe}
 .d-plata{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#ffb3c1;background:var(--service-bg);border:1px solid rgba(255,77,109,.35);border-radius:12px;padding:10px 12px}
 .d-bara{flex:none;border-top:1px solid var(--line-soft);background:rgba(7,11,20,.94);padding:10px 14px calc(var(--sab) + 12px);display:flex;gap:10px;align-items:center}
@@ -392,7 +394,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v50";
+const VERSIUNE_APP = "18.10 · v51";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -725,7 +727,7 @@ function openDetail(id,synced){
      <div class="d-lista">
        ${li("om","Client",it.client)}${li("info","Firmă",it.company)}
        ${callable.length===1?li("tel","Telefon",callable[0].a||callable[0].t):""}
-       ${li("avion","Zbor",it.flight)}
+       ${li("avion","Zbor",it.flight,it.flight?`<button class="d-mini" type="button" id="dZbor">🛬 Când aterizează?</button>`:"")}
        ${it.from?li("pin",it.to?"Oprirea 1":"Adresa",it.from):""}${it.to?li("pin",it.from?"Oprirea 2":"Adresa",it.to):""}
        ${li("pin","Locație",loc)}${it.res?li("bilet","Rezervare",it.res,tipPv(it)?`<button class="d-mini" type="button" id="dPv">PV ↗</button>`:""):tipPv(it)==="exchange"?li("bilet","Exchange","PV exchange",`<button class="d-mini" type="button" id="dPv">PV ↗</button>`):""}${li("scut","RCA",rca)}${li("info","Detalii",it.info)}
        ${li("echipa","Echipa",echipa,pornit)}
@@ -750,6 +752,7 @@ function openDetail(id,synced){
   sh.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>act(it,b.dataset.act));
   const r=$("#dRfr"); if(r) r.onclick=()=>toggleRfr(it.id);
   const pv=$("#dPv"); if(pv) pv.onclick=()=>deschidePv(it.res,tipPv(it));
+  const zb=$("#dZbor"); if(zb) zb.onclick=()=>cautaZbor(it.flight,zb);
   $("#callBtn").addEventListener("click",e=>{if(callable.length>1){e.preventDefault();openPicker(callable);}});
 }
 
@@ -967,6 +970,31 @@ const tipPv=it=>/EXCHANGE/i.test(it.raw)?"exchange":(it.type==="predare"||it.typ
 function deschidePv(res,tip){
   if(res)try{navigator.clipboard.writeText(res).then(()=>toast(res+" copiat · lipește-l la căutare"),()=>{});}catch(e){}
   window.open(PV_URL[tip]||"https://pv.autonomservices.ro/","_blank","noopener");
+}
+// ---------- Zborurile la Aeroportul Oradea (FlightRadar24, prin ceasul Cloudflare; 60 s în cache) ----------
+const URL_ZBORURI="https://program-oradea-ceas.ceas.workers.dev/zboruri";
+const oraRo=s=>new Date(s*1000).toLocaleTimeString("ro-RO",{timeZone:"Europe/Bucharest",hour:"2-digit",minute:"2-digit"});
+const nrZbor=x=>String(x||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+async function cautaZbor(zbor,btn){
+  const rand=btn.closest(".d-li"), b=rand.querySelector("b");
+  let info=rand.querySelector(".zb"); if(!info){info=document.createElement("span");info.className="zb";b.after(info);}
+  btn.disabled=true;btn.textContent="Caut…";info.textContent="";
+  try{
+    const r=await fetch(URL_ZBORURI,{cache:"no-store"}), j=await r.json();
+    if(j.eroare) throw new Error(j.eroare);
+    const cod=nrZbor(zbor), cifre=cod.replace(/^[A-Z0-9]{2}(?=\d)/,"").replace(/^[A-Z]+/,"");
+    const z=(j.sosiri||[]).find(x=>nrZbor(x.nr)===cod)||(j.sosiri||[]).find(x=>cifre&&nrZbor(x.nr).endsWith(cifre));
+    const fr=`https://www.flightradar24.com/data/flights/${(z?z.nr:cod).toLowerCase()}`;
+    let t;
+    if(!z) t=`Nu apare acum la sosirile Oradea.`;
+    else if(z.real) t=`✓ A aterizat la ${oraRo(z.real)}${z.de_la?" · din "+esc(z.de_la):""}`;
+    else{
+      const ora=z.est||z.prog, min=Math.round((ora*1000-Date.now())/60000), intarziere=z.est&&z.prog?Math.round((z.est-z.prog)/60):0;
+      t=`🛬 ${z.est?"Aterizează":"Programat"} la ${oraRo(ora)}${min>0?` · în ${min<60?min+" min":Math.floor(min/60)+" h "+(min%60)+" min"}`:""}${intarziere>4?` · +${intarziere} min întârziere`:""}${z.de_la?" · din "+esc(z.de_la):""}${z.est?"":" (fără estimare încă)"}`;
+    }
+    info.innerHTML=`${t} · <a href="${fr}" target="_blank" rel="noopener">pe hartă ↗</a>`;
+  }catch(e){info.textContent="Nu pot afla acum zborul. Încearcă din nou.";}
+  btn.disabled=false;btn.textContent="↻ Actualizează";
 }
 function toast(msg,undo){
   const t=$("#toast");t.textContent=msg;
