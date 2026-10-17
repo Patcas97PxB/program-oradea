@@ -1,6 +1,6 @@
 // Ține aplicația disponibilă și fără semnal și afișează notificările.
 // Datele programului nu trec pe aici (vin direct de la scriptul Google).
-const VERSIUNE = 'po-v40';
+const VERSIUNE = 'po-v41';
 const FISIERE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png'];
 
 self.addEventListener('install', e => {
