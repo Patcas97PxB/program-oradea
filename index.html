@@ -58,9 +58,18 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 /* Antet */
 .top{background:rgba(7,11,20,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line-soft);
   padding:calc(var(--sat) + 22px) 16px 12px;display:flex;flex-direction:column;gap:11px}
-.top-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.brand{font-weight:800;font-size:20px;letter-spacing:-.01em;min-width:0}
-.brand small{display:block;font-weight:500;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-row{display:flex;align-items:center;gap:10px}
+.brand{font-weight:800;font-size:18px;letter-spacing:-.01em;min-width:0;flex:1;display:flex;flex-direction:column;align-items:flex-start}
+.logo-po{flex:none;width:38px;height:38px;border-radius:11px;background:#10069f;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;position:relative;padding-bottom:4px}
+.logo-po::after{content:"";position:absolute;bottom:8px;left:9px;right:9px;height:3px;border-radius:2px;background:linear-gradient(90deg,#00c060 0 30%,transparent 30% 35%,#147bd1 35% 65%,transparent 65% 70%,#7040c0 70%)}
+.live{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:2px 0 0;color:var(--muted);font:600 12px var(--f-ui);max-width:100%;cursor:pointer}
+.live span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.live i{flex:none;width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)}
+.live.vechi i{background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.18)}
+.live.loading i{background:#60a5fa}
+@media (prefers-reduced-motion:no-preference){.live i{animation:puls 2.4s ease-in-out infinite}.live.loading i{animation:puls .6s ease-in-out infinite}@keyframes puls{50%{box-shadow:0 0 0 6px rgba(34,197,94,0)}}}
+.me-btn.av{width:38px;padding:0;border-radius:50%;border:0;background:var(--brand-gradient);background-size:200% 100%;color:#fff;font-size:13px}
+
 .top-actions{display:flex;align-items:center;gap:8px;flex:none}
 .icon-btn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--muted)}
 .icon-btn svg{width:18px;height:18px}
@@ -78,7 +87,13 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .search input::placeholder{color:#64748b}
 .search input::-webkit-search-cancel-button{display:none}
 .search button{border:0;background:var(--surface-3);color:var(--muted);width:26px;height:26px;border-radius:50%;font-size:17px;line-height:1;flex:none}
-.days{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+.days{display:grid;grid-template-columns:40px minmax(0,1fr) 40px;align-items:center;gap:8px}
+.zi-sag{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:800 20px var(--f-ui);line-height:1;display:grid;place-items:center;padding:0 0 2px}
+.zi-sag:disabled{opacity:.25}
+.zi-mij{text-align:center;min-width:0}
+.zi-mij small{display:block;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent,#2dd4bf)}
+.zi-mij b{display:block;font-size:21px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zi-tot{border:0;background:none;color:var(--muted);font:600 12px var(--f-ui);text-decoration:underline;text-underline-offset:3px;padding:2px 6px}
 .days::-webkit-scrollbar{display:none}
 .day{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:6px 10px;text-align:center;min-width:62px}
 .day b{display:block;font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -278,15 +293,13 @@ button.b-act{cursor:pointer}
 <div class="app" id="app">
   <header class="top">
     <div class="top-row">
-      <div class="brand">Program Oradea<small id="subtitle">Se încarcă…</small></div>
+      <span class="logo-po" aria-hidden="true">PO</span>
+      <div class="brand">Program Oradea<button class="live" id="refresh" type="button" aria-label="Actualizează programul"><i></i><span id="subtitle">Se încarcă…</span></button></div>
       <div class="top-actions">
         <button class="icon-btn bell" id="bell" type="button" aria-label="Notificări" hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>
         </button>
-        <button class="icon-btn" id="refresh" type="button" aria-label="Reîncarcă programul">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
-        </button>
-        <button class="me-btn" id="meBtn" type="button" aria-label="Schimbă colegul"></button>
+        <button class="me-btn av" id="meBtn" type="button" aria-label="Contul meu"></button>
       </div>
     </div>
     <div class="banner-err" id="err" hidden></div>
@@ -339,7 +352,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "17.10 · v36";
+const VERSIUNE_APP = "17.10 · v37";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -460,13 +473,15 @@ async function incarca(manual,faraMesaj){
   }
 }
 
+function initiale(cod){const n=(numeAfisat(cod)||"Eu").trim();return n.slice(0,2).toUpperCase();}
 function subtitlu(){
   if(!state.data){$("#subtitle").textContent=state.loading?"Se încarcă…":"Fără date";return;}
   const s=state.sync||store.get("po.sync",0);
   const min=s?Math.round((Date.now()-s)/60000):null;
   const dm=state.data.documentModificat?new Date(state.data.documentModificat):null;
   const ora=dm?" · program "+pad(dm.getHours())+":"+pad(dm.getMinutes()):"";
-  $("#subtitle").textContent=(min===null?"Ultima variantă salvată":min<1?"Sincronizat acum":"Sincronizat acum "+min+" min")+ora+" · "+numeAfisat(state.me);
+  $("#subtitle").textContent=(min===null?"ultima variantă salvată":min<1?"la zi":"acum "+min+" min")+ora;
+  $("#refresh").classList.toggle("vechi",min===null||min>=2);
 }
 
 // ---------- Statusuri (comune pentru toți colegii, ținute de script; documentul nu se modifică) ----------
@@ -547,14 +562,23 @@ function line2(it){
 // De obicei se încarcă doar azi și mâine (rapid). Tot programul doar la cerere: „Toate zilele” sau căutare, 10 minute.
 const vreauTot=()=>Date.now()<(state.totPana||0);
 function cereTot(){const era=vreauTot();state.totPana=Date.now()+10*60000;if(!era||(state.data&&state.data.doarAziMaine))incarca(true);}
+const LUNI=["ian","feb","mar","apr","mai","iun","iul","aug","sep","oct","noi","dec"];
 function renderDays(){
   const azi=isoAzi(),m=new Date();m.setDate(m.getDate()+1);
   const maine=m.getFullYear()+"-"+pad(m.getMonth()+1)+"-"+pad(m.getDate());
-  $("#days").innerHTML=DAYS.map(d=>`<button class="day${d.id===azi?" azi":""}" type="button" data-id="${d.id}" aria-pressed="${d.id===state.day}"><span>${d.id===azi?"Azi":d.id===maine?"Mâine":d.dow}</span><b>${d.d}</b></button>`).join("")
-    +(state.data&&state.data.doarAziMaine?`<button class="day all" type="button" data-all="1"><span>Program</span><b>Toate zilele</b></button>`:"");
-  const sel=$("#days .day[aria-pressed=true]");
-  if(sel) sel.scrollIntoView({inline:"center",block:"nearest"});
+  const i=DAYS.findIndex(d=>d.id===state.day),d=DAYS[i];
+  if(!d){$("#days").innerHTML="";return;}
+  const prev=DAYS[i-1],next=DAYS[i+1],dt=new Date(d.id+"T12:00:00");
+  const eticheta=d.id===azi?"Azi":d.id===maine?"Mâine":d.id<azi?"Trecută":"";
+  // ultima zi încărcată, dar programul are mai multe: săgeata cere tot programul
+  const maiMulte=!next&&state.data&&state.data.doarAziMaine;
+  const link=state.data&&state.data.doarAziMaine?`<button class="zi-tot" type="button" data-all="1">vezi toate zilele</button>`
+    :d.id!==azi&&DAYS.some(x=>x.id===azi)?`<button class="zi-tot" type="button" data-id="${azi}">înapoi la azi</button>`:"";
+  $("#days").innerHTML=`<button class="zi-sag" type="button" aria-label="Ziua dinainte" ${prev?`data-id="${prev.id}"`:"disabled"}>‹</button>
+    <div class="zi-mij"><small>${eticheta||"&nbsp;"}</small><b>${d.lung}, ${dt.getDate()} ${LUNI[dt.getMonth()]}</b>${link}</div>
+    <button class="zi-sag" type="button" aria-label="Ziua următoare" ${next?`data-id="${next.id}"`:maiMulte?'data-all="1"':"disabled"}>›</button>`;
 }
+
 
 function card(it,searching){
   const T=TYPES[it.type];
@@ -906,7 +930,7 @@ function toggleRfr(id){
 function seteazaSesiune(j){
   Object.assign(state,{token:j.token,me:j.cine,rol:j.rol,user:j.user});
   store.set("po.token",j.token);store.set("po.me",j.cine);store.set("po.rol",j.rol);store.set("po.user",j.user);
-  $("#meBtn").textContent=numeAfisat(j.cine);
+  $("#meBtn").textContent=initiale(j.cine);
 }
 function arataLogin(msg){
   $("#picker").hidden=true;$("#sheet").classList.remove("open");
@@ -951,7 +975,7 @@ document.querySelectorAll(".seg button").forEach(b=>{
   b.setAttribute("aria-pressed",b.dataset.f===state.filter);
   b.onclick=()=>{state.filter=b.dataset.f;store.set("po.filter",state.filter);document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));render();};
 });
-$("#days").onclick=e=>{const b=e.target.closest(".day");if(!b)return;if(b.dataset.all){cereTot();return;}if(vreauTot())state.totPana=Date.now()+10*60000;state.day=b.dataset.id;renderDays();render();$("#list").scrollTop=0;};
+$("#days").onclick=e=>{const b=e.target.closest("[data-id],[data-all]");if(!b)return;if(b.dataset.all){cereTot();return;}if(vreauTot())state.totPana=Date.now()+10*60000;state.day=b.dataset.id;renderDays();render();$("#list").scrollTop=0;};
 $("#list").onclick=e=>{
   const t=e.target.closest("[data-take]");if(t){takeFromCard(t.dataset.take);return;}
   const f=e.target.closest("[data-finish]");if(f){finishFromCard(f.dataset.finish);return;}
@@ -964,7 +988,10 @@ $("#refresh").onclick=()=>incarca(true);
 $("#subsol").textContent=DREPTURI;
 // Fundalul stă pe loc: se derulează doar lista, detaliile și ferestrele; restul ecranului nu „trage” pagina.
 const DERULABILE=".list,.sheet-body,.setup,.picker,.picker-card,.info-date,.days";
-document.addEventListener("touchmove",e=>{if(!e.target.closest(DERULABILE))e.preventDefault();},{passive:false});
+document.addEventListener("touchmove",e=>{
+  const z=e.target.closest(DERULABILE);
+  if(!z||(z.scrollHeight<=z.clientHeight+1&&z.scrollWidth<=z.clientWidth+1))e.preventDefault();
+},{passive:false});
 $("#meBtn").onclick=meniuCont;
 
 // ---------- Notificări ----------
@@ -1065,7 +1092,7 @@ setInterval(subtitlu,30000);
 
 // Pornire. Cheia se poate da și printr-un link de configurare: ...#k=CHEIA (nu ajunge la server).
 try{localStorage.removeItem("po.key")}catch(e){} // cheia comună veche nu se mai folosește
-$("#meBtn").textContent=numeAfisat(state.me)||"Eu";
+$("#meBtn").textContent=initiale(state.me);
 citesteLink();
 pregateste();renderDays();render();deschideDinLink();
 stareClopotel();
