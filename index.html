@@ -166,7 +166,7 @@ button.b-act{cursor:pointer}
 .plate.mini{font-size:12px;vertical-align:1px;border-width:1px;border-radius:4px;margin:0 1px}
 .plate.mini i{font-size:6.5px;padding:0 2px 2px}
 .plate.mini b{padding:2px 5px 2px}
-.sheet-plates{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.sheet-plates{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
 .task-mare{font-size:17px;font-weight:600;line-height:1.6}
 .task-mare .plate{vertical-align:middle}
 .c-foot{flex:none;margin-top:auto;height:50px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px 4px 18px}
@@ -395,7 +395,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v48";
+const VERSIUNE_APP = "18.10 · v49";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -717,7 +717,7 @@ function openDetail(id,synced){
      <span class="d-fil" aria-hidden="true">${T.label}</span>
      <div class="d-tip">${T.label}${it.res?" · "+esc(it.res):""}</div>
      <div class="d-r"><div><div class="d-ora">${esc(it.t||"––:––")}</div>${it.client?`<div class="d-cl">${esc(it.client)}</div>`:""}</div>
-       ${it.type==="service"?`<div class="sheet-plates">${[it.plate].concat(it.r.altNrAuto||[]).filter(Boolean).map(x=>plate(x)).join("")}</div>`:plate(it.plate,true)}</div>
+       ${it.type==="service"?`<div class="sheet-plates">${[it.plate].concat(it.r.altNrAuto||[]).filter(Boolean).map(x=>plate(x,true)).join("")}</div>`:plate(it.plate,true)}</div>
      ${it.type==="predare"?`<button class="d-rfr" type="button" id="dRfr" aria-pressed="${rfrOk(it)}">${rfrOk(it)?"RFR făcut":"RFR lipsă"}</button>`:""}
    </div>
    <div class="sheet-body">
