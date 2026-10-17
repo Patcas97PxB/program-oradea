@@ -385,7 +385,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "17.10 · v41";
+const VERSIUNE_APP = "17.10 · v42";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -948,8 +948,8 @@ const ACTIUNI={take:"iau",drop:"renunt",start:"pornit",done:"finalizat",undo:"an
 function act(it,a){trimite(it,ACTIUNI[a]);}
 let toastTimer=null;
 // PV-ul de pe pv.autonomservices.ro: copiază rezervarea (de lipit în căutare) și deschide site-ul
-// predare → direct pe pagina de căutare de la Predare; preluare → pagina principală (până aflăm adresa ei)
-const PV_URL={predare:"https://pv.autonomservices.ro/predare.php"};
+// direct pe pagina de căutare de la Predare / Preluare
+const PV_URL={predare:"https://pv.autonomservices.ro/predare.php",preluare:"https://pv.autonomservices.ro/preluare.php"};
 function deschidePv(res,tip){
   try{navigator.clipboard.writeText(res).then(()=>toast(res+" copiat · lipește-l la căutare"),()=>{});}catch(e){}
   window.open(PV_URL[tip]||"https://pv.autonomservices.ro/","_blank","noopener");
