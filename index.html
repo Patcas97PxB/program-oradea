@@ -168,6 +168,7 @@ button.b-act{cursor:pointer}
 .plate.mini b{padding:2px 5px 2px}
 .sheet-plates{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
 .task-mare{font-size:17px;font-weight:600;line-height:1.6}
+.task-mare .plate{vertical-align:middle}
 .c-foot{flex:none;margin-top:auto;height:50px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px 4px 18px}
 .c-foot .chips{flex-wrap:nowrap;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
 .chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center;min-width:0}
@@ -394,7 +395,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "17.10 · v47";
+const VERSIUNE_APP = "18.10 · v48";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -720,7 +721,7 @@ function openDetail(id,synced){
      ${it.type==="predare"?`<button class="d-rfr" type="button" id="dRfr" aria-pressed="${rfrOk(it)}">${rfrOk(it)?"RFR făcut":"RFR lipsă"}</button>`:""}
    </div>
    <div class="sheet-body">
-     ${it.type==="service"?`<div class="box task-mare">${textSarcina(it)}</div>`:""}
+     ${it.type==="service"?`<div class="box task-mare"><div>${textSarcina(it)}</div></div>`:""}
      ${it.pay?`<div class="d-plata">${esc(it.pay)}</div>`:""}
      ${it.notes.length?`<div class="alert">${it.notes.map(esc).join(" · ")}</div>`:""}
      <div class="d-lista">
