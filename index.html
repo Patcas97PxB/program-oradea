@@ -106,6 +106,31 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .card::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px;border-radius:0 4px 4px 0;background:var(--t);box-shadow:0 0 12px var(--t)}
 .card:active{transform:scale(.99)}
 .card.done{opacity:.5}
+/* Varianta B · bilet subțire (aleasă 17.10): sus ora · tipul · etichete · rezervarea; jos RFR · plăcuța · clientul;
+   în dreapta un singur buton (Iau eu / Finalizat) sau cine o are. Aceeași înălțime pentru toate. */
+.list{gap:8px}
+.card.b{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;height:74px;padding:8px 12px 8px 16px;border-radius:12px;box-shadow:var(--shadow)}
+.card.b::before{top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;box-shadow:0 0 8px var(--t)}
+.card.b.serv{height:auto;min-height:74px}
+.b-st{min-width:0;display:flex;flex-direction:column;gap:6px}
+.b-sus{display:flex;align-items:center;gap:7px;min-width:0;height:20px}
+.b-ora{flex:none;font-weight:800;font-size:17px;line-height:1;font-variant-numeric:tabular-nums}
+.b-tip{flex:none;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--t)}
+.b-etc{display:flex;gap:4px;min-width:0;flex:1;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 80%,transparent);mask-image:linear-gradient(90deg,#000 80%,transparent)}
+.b-etc .chip{font-size:9.5px;padding:2px 6px}
+.b-rez{flex:none;margin-left:auto;font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.03em;font-variant-numeric:tabular-nums}
+.b-jos{display:flex;align-items:center;gap:7px;min-width:0;height:24px;font-size:14px;font-weight:700}
+.b-jos .cl{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.b-jos .cl small{font-weight:500;font-size:12.5px;color:var(--muted)}
+.b-jos .plate.mini{font-size:11.5px}
+.b-jos .rfr-btn{min-height:22px;padding:2px 6px;font-size:9.5px;border-radius:5px;letter-spacing:.06em}
+.b-serv{font-size:13px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.b-act{flex:none;font:800 12px var(--f-ui);border-radius:10px;padding:9px 11px;white-space:nowrap;border:1px solid var(--line);background:var(--surface-3);color:var(--muted);max-width:110px;overflow:hidden;text-overflow:ellipsis}
+button.b-act{cursor:pointer}
+.b-act.ia{position:relative;background:var(--brand-gradient);background-size:200% 100%;color:#fff;border-color:transparent}
+.b-act.fin{background:var(--predare);color:var(--on-ok);border-color:transparent}
+.b-act.gata{background:var(--predare-bg);color:var(--predare);border-color:transparent}
+.b-act.alt{background:transparent;color:#bfdbfe;border-color:#3b82f6}
 .card.done::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(45deg,rgba(34,197,94,.06) 0 8px,transparent 8px 16px)}
 .card.nota{cursor:default;padding:14px 16px 12px 18px;justify-content:center;gap:6px}
 .card.nota .where{white-space:normal;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;margin-top:6px}
@@ -312,7 +337,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "14.10 · v34";
+const VERSIUNE_APP = "17.10 · v35";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -534,28 +559,32 @@ function card(it,searching){
   if(it.type==="nota") return `<div class="card nota" style="--t:${T.c}"><div class="body">
       <div class="time">${searching?`<span class="day-tag">${esc(it.dayD)}</span>`:""}<small>Notă${it.t?" · "+esc(it.t):""}</small></div>
       <div class="where">${esc(it.raw)}</div></div></div>`;
-  const w=who(it),mine=w.includes(state.me),done=isDone(it);
-  const btn=done?"":mine?`<button class="card-take finish" type="button" data-finish="${it.id}">✓ Finalizat</button>`
-    :w.length?`<button class="card-take join" type="button" data-take="${it.id}">Mă adaug și eu</button>`
-    :`<button class="card-take" type="button" data-take="${it.id}">Iau eu intervenția</button>`;
+  const w=who(it),mine=w.includes(state.me),done=isDone(it),p=prog(it);
+  // butonul din dreapta: liberă → Iau eu; a mea → Finalizat; a altora → cine o are (detaliile au „Mă adaug și eu”); gata → ✓
+  const act=done?`<span class="b-act gata">✓ Gata</span>`
+    :mine?`<button class="b-act fin" type="button" data-finish="${it.id}">✓ Finalizat</button>`
+    :w.length?`<span class="b-act alt">${esc(w.map(numeAfisat).join(" + "))}</span>`
+    :`<button class="b-act ia" type="button" data-take="${it.id}">Iau eu</button>`;
+  // etichete mici pe rândul de sus: stare, urgent, nume greșite, RCA, plata, colegii de lângă mine
+  const e=[];
+  if(!done&&p.started) e.push(`<span class="chip st">Pornit ${esc(p.started)}</span>`);
+  if(it.urgent) e.push(`<span class="chip pay">Urgent</span>`);
+  (it.r.numeNecunoscute||[]).forEach(n=>e.push(`<span class="chip pay">? ${esc(n.text)}</span>`));
+  if(it.r.rca) e.push(`<span class="chip rca">RCA${it.r.rca.asigurator?" · "+esc(it.r.rca.asigurator):""}</span>`);
+  if(it.pay) e.push(`<span class="chip${it.paid?"":" pay"}">${esc(plataScurta(it.pay))}</span>`);
+  if(mine&&w.length>1) e.push(`<span class="chip me">Tu + ${esc(w.filter(x=>x!==state.me).map(numeAfisat).join(" + "))}</span>`);
+  if(done&&!mine&&w.length) e.push(`<span class="chip">${esc(w.map(numeAfisat).join(" + "))}</span>`);
+  const sus=`<div class="b-sus">${searching?`<span class="day-tag">${esc(it.dayD)}</span>`:""}<b class="b-ora">${esc(it.t||"––:––")}</b><span class="b-tip">${T.label}</span><span class="b-etc">${e.join("")}</span>${it.res?`<span class="b-rez">${esc(it.res)}</span>`:""}</div>`;
+  if(it.type==="service") return `<div class="card b serv${done?" done":""}" role="button" tabindex="0" data-id="${it.id}" style="--t:${T.c}">
+    <div class="b-st">${sus}<div class="b-serv">${textSarcina(it)}</div></div>${act}</div>`;
   const rfr=it.type==="predare"?`<button class="rfr-btn" type="button" data-rfr="${it.id}" aria-pressed="${rfrOk(it)}">RFR</button>`:"";
   const unde=line2(it);
-  if(it.type==="service") return `<div class="card${done?" done":""}" role="button" tabindex="0" data-id="${it.id}" style="--t:${T.c}">
-    <div class="c-serv">
-      <div class="time">${searching?`<span class="day-tag">${esc(it.dayD)}</span>`:""}<b>${esc(it.t||"––:––")}</b><small>${T.label}</small>${it.res?`<span class="c-rez">${esc(it.res)}</span>`:""}</div>
-      <div class="c-task">${textSarcina(it)}</div>
-    </div>
-    <div class="c-foot"><div class="chips">${chips(it)}</div>${btn}</div>
-  </div>`;
-  return `<div class="card${done?" done":""}" role="button" tabindex="0" data-id="${it.id}" style="--t:${T.c}">
-    <div class="c-head">
-      <div class="time">${searching?`<span class="day-tag">${esc(it.dayD)}</span>`:""}<b>${esc(it.t||"––:––")}</b><small>${T.label}</small>${it.res?`<span class="c-rez">${esc(it.res)}</span>`:""}</div>
-      <div class="c-plate">${plate(it.plate)}</div>
-    </div>
-    ${`<div class="c-mid">${it.client?`<div class="who-line">${esc(it.client)}</div>`:""}${unde?`<div class="where${it.client?"":" doua"}">${it.type!=="service"?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>':""}${esc(unde)}</div>`:""}</div>`}
-    <div class="c-foot"><div class="chips">${rfr}${chips(it)}</div>${btn}</div>
-  </div>`;
+  return `<div class="card b${done?" done":""}" role="button" tabindex="0" data-id="${it.id}" style="--t:${T.c}">
+    <div class="b-st">${sus}
+      <div class="b-jos">${rfr}${it.plate?placutaMica(it.plate):""}<span class="cl">${esc(it.client||unde||it.raw)}${it.client&&unde?` <small>· ${esc(unde)}</small>`:""}</span></div>
+    </div>${act}</div>`;
 }
+
 
 function render(){
   const q=state.q.trim(),searching=q.length>0;
