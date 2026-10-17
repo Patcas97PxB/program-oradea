@@ -255,6 +255,8 @@ button.b-act{cursor:pointer}
 .panou-gol{padding:14px 12px 16px;font:600 13.5px var(--f-ui);color:#94a3b8;line-height:1.5;border-top:1px solid #1d2433}
 .picker-row .sz{font-style:normal;font-size:13px;font-weight:800;color:var(--muted);white-space:nowrap;background:transparent;border:0;padding:0;box-shadow:none}
 .picker-row .sz.ok{color:#22c55e}.picker-row .sz.est{color:#7dd3fc}
+#dSosiri,#dZbor{display:inline-flex;align-items:center;gap:6px}
+#dSosiri svg,#dZbor svg{width:15px;height:15px;color:#7dd3fc;flex:none}
 .zb{display:block;margin-top:4px;font-size:13px;font-weight:700;color:#7dd3fc;line-height:1.4}
 .zb a{color:#a5b4fc}
 .d-mini[aria-pressed="true"]{background:rgba(37,99,235,.25);border-color:#3b82f6;color:#dbeafe}
@@ -408,7 +410,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v53";
+const VERSIUNE_APP = "18.10 · v54";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -741,9 +743,9 @@ function openDetail(id,synced){
      <div class="d-lista">
        ${li("om","Client",it.client)}${li("info","Firmă",it.company)}
        ${callable.length===1?li("tel","Telefon",callable[0].a||callable[0].t):""}
-       ${li("avion","Zbor",it.flight,it.flight?`<button class="d-mini" type="button" id="dZbor">Când aterizează?</button>`:"")}
-       ${it.from?li("pin",it.to?"Oprirea 1":"Adresa",it.from,laAeroport(it)&&/aeroport|airport/i.test(it.from)?`<button class="d-mini" type="button" id="dSosiri">Sosiri</button>`:""):""}${it.to?li("pin",it.from?"Oprirea 2":"Adresa",it.to):""}
-       ${li("pin","Locație",loc,laAeroport(it)?`<button class="d-mini" type="button" id="dSosiri">Sosiri</button>`:"")}${it.res?li("bilet","Rezervare",it.res,tipPv(it)?`<button class="d-mini" type="button" id="dPv">PV ↗</button>`:""):tipPv(it)==="exchange"?li("bilet","Exchange","PV exchange",`<button class="d-mini" type="button" id="dPv">PV ↗</button>`):""}${li("scut","RCA",rca)}${li("info","Detalii",it.info)}
+       ${li("avion","Zbor",it.flight,it.flight?`<button class="d-mini" type="button" id="dZbor">${DI.avion}Când aterizează?</button>`:"")}
+       ${it.from?li("pin",it.to?"Oprirea 1":"Adresa",it.from,laAeroport(it)&&/aeroport|airport/i.test(it.from)?`<button class="d-mini" type="button" id="dSosiri">${DI.avion}Sosiri</button>`:""):""}${it.to?li("pin",it.from?"Oprirea 2":"Adresa",it.to):""}
+       ${li("pin","Locație",loc,laAeroport(it)?`<button class="d-mini" type="button" id="dSosiri">${DI.avion}Sosiri</button>`:"")}${it.res?li("bilet","Rezervare",it.res,tipPv(it)?`<button class="d-mini" type="button" id="dPv">PV ↗</button>`:""):tipPv(it)==="exchange"?li("bilet","Exchange","PV exchange",`<button class="d-mini" type="button" id="dPv">PV ↗</button>`):""}${li("scut","RCA",rca)}${li("info","Detalii",it.info)}
        ${li("echipa","Echipa",echipa,pornit)}
      </div>
      ${mine&&!done?`<button class="link-btn" type="button" data-act="drop">Renunț la intervenție</button>`:""}
@@ -993,7 +995,7 @@ const nrZbor=x=>String(x||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
 async function cautaZbor(zbor,btn){
   const rand=btn.closest(".d-li"), b=rand.querySelector("b");
   let info=rand.querySelector(".zb"); if(!info){info=document.createElement("span");info.className="zb";b.after(info);}
-  btn.disabled=true;btn.textContent="Caut…";info.textContent="";
+  btn.disabled=true;btn.innerHTML=DI.avion+"Caut…";info.textContent="";
   try{
     const r=await fetch(URL_ZBORURI,{cache:"no-store"}), j=await r.json();
     if(j.eroare) throw new Error(j.eroare);
@@ -1009,17 +1011,17 @@ async function cautaZbor(zbor,btn){
     }
     info.innerHTML=`${t} · <a href="${fr}" target="_blank" rel="noopener">pe hartă ↗</a>`;
   }catch(e){info.textContent="Nu pot afla acum zborul. Încearcă din nou.";}
-  btn.disabled=false;btn.textContent="↻ Actualizează";
+  btn.disabled=false;btn.innerHTML=DI.avion+"Actualizează";
 }
 // Predări / transferuri la aeroport: toate sosirile din ziua intervenției
 const laAeroport=it=>(it.type==="predare"||it.type==="transfer")&&/aeroport|airport/i.test([it.loc,it.from,it.raw].join(" "));
 const ziRo=s=>new Date(s*1000).toLocaleDateString("sv-SE",{timeZone:"Europe/Bucharest"});
 async function sosiriZiua(it,btn){
-  btn.disabled=true;const txt=btn.textContent;btn.textContent="Caut…";
+  btn.disabled=true;const txt=btn.innerHTML;btn.innerHTML=DI.avion+"Caut…";
   let j;
   try{const r=await fetch(URL_ZBORURI,{cache:"no-store"});j=await r.json();if(j.eroare)throw new Error(j.eroare);}
-  catch(e){btn.disabled=false;btn.textContent=txt;toast("Nu pot afla acum sosirile. Încearcă din nou.");return;}
-  btn.disabled=false;btn.textContent=txt;
+  catch(e){btn.disabled=false;btn.innerHTML=txt;toast("Nu pot afla acum sosirile. Încearcă din nou.");return;}
+  btn.disabled=false;btn.innerHTML=txt;
   const lista=(j.sosiri||[]).filter(z=>z.prog&&ziRo(z.prog)===it.dayId).sort((a,b)=>a.prog-b.prog);
   const stare=z=>z.real?`<span class="x ok">ATERIZAT ${oraRo(z.real)}</span>`:z.est?`<span class="x est">EST ${oraRo(z.est)}</span>`:`<span class="x">PROGRAMAT</span>`;
   const p=$("#picker");
