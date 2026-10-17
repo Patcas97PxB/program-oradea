@@ -241,6 +241,9 @@ button.b-act{cursor:pointer}
 .d-li small{display:block;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.04em;text-transform:uppercase}
 .d-li b{font-size:14.5px;font-weight:700;overflow-wrap:anywhere}
 .d-mini{border:1px solid var(--line);background:var(--surface-3);color:var(--fg);font:800 12.5px var(--f-ui);border-radius:10px;padding:8px 11px;white-space:nowrap}
+.picker-row.aproape{border-color:#3b82f6;background:rgba(59,130,246,.14)}
+.picker-row .sz{font-style:normal;font-size:13px;font-weight:800;color:var(--muted);white-space:nowrap;background:transparent;border:0;padding:0;box-shadow:none}
+.picker-row .sz.ok{color:#22c55e}.picker-row .sz.est{color:#7dd3fc}
 .zb{display:block;margin-top:4px;font-size:13px;font-weight:700;color:#7dd3fc;line-height:1.4}
 .zb a{color:#a5b4fc}
 .d-mini[aria-pressed="true"]{background:rgba(37,99,235,.25);border-color:#3b82f6;color:#dbeafe}
@@ -394,7 +397,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v51";
+const VERSIUNE_APP = "18.10 · v52";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -728,8 +731,8 @@ function openDetail(id,synced){
        ${li("om","Client",it.client)}${li("info","Firmă",it.company)}
        ${callable.length===1?li("tel","Telefon",callable[0].a||callable[0].t):""}
        ${li("avion","Zbor",it.flight,it.flight?`<button class="d-mini" type="button" id="dZbor">🛬 Când aterizează?</button>`:"")}
-       ${it.from?li("pin",it.to?"Oprirea 1":"Adresa",it.from):""}${it.to?li("pin",it.from?"Oprirea 2":"Adresa",it.to):""}
-       ${li("pin","Locație",loc)}${it.res?li("bilet","Rezervare",it.res,tipPv(it)?`<button class="d-mini" type="button" id="dPv">PV ↗</button>`:""):tipPv(it)==="exchange"?li("bilet","Exchange","PV exchange",`<button class="d-mini" type="button" id="dPv">PV ↗</button>`):""}${li("scut","RCA",rca)}${li("info","Detalii",it.info)}
+       ${it.from?li("pin",it.to?"Oprirea 1":"Adresa",it.from,laAeroport(it)&&/aeroport|airport/i.test(it.from)?`<button class="d-mini" type="button" id="dSosiri">🛬 Sosiri</button>`:""):""}${it.to?li("pin",it.from?"Oprirea 2":"Adresa",it.to):""}
+       ${li("pin","Locație",loc,laAeroport(it)?`<button class="d-mini" type="button" id="dSosiri">🛬 Sosiri</button>`:"")}${it.res?li("bilet","Rezervare",it.res,tipPv(it)?`<button class="d-mini" type="button" id="dPv">PV ↗</button>`:""):tipPv(it)==="exchange"?li("bilet","Exchange","PV exchange",`<button class="d-mini" type="button" id="dPv">PV ↗</button>`):""}${li("scut","RCA",rca)}${li("info","Detalii",it.info)}
        ${li("echipa","Echipa",echipa,pornit)}
      </div>
      ${mine&&!done?`<button class="link-btn" type="button" data-act="drop">Renunț la intervenție</button>`:""}
@@ -753,6 +756,7 @@ function openDetail(id,synced){
   const r=$("#dRfr"); if(r) r.onclick=()=>toggleRfr(it.id);
   const pv=$("#dPv"); if(pv) pv.onclick=()=>deschidePv(it.res,tipPv(it));
   const zb=$("#dZbor"); if(zb) zb.onclick=()=>cautaZbor(it.flight,zb);
+  const so=$("#dSosiri"); if(so) so.onclick=()=>sosiriZiua(it,so);
   $("#callBtn").addEventListener("click",e=>{if(callable.length>1){e.preventDefault();openPicker(callable);}});
 }
 
@@ -995,6 +999,35 @@ async function cautaZbor(zbor,btn){
     info.innerHTML=`${t} · <a href="${fr}" target="_blank" rel="noopener">pe hartă ↗</a>`;
   }catch(e){info.textContent="Nu pot afla acum zborul. Încearcă din nou.";}
   btn.disabled=false;btn.textContent="↻ Actualizează";
+}
+// Predări / transferuri la aeroport: toate sosirile din ziua intervenției
+const laAeroport=it=>(it.type==="predare"||it.type==="transfer")&&/aeroport|airport/i.test([it.loc,it.from,it.raw].join(" "));
+const ziRo=s=>new Date(s*1000).toLocaleDateString("sv-SE",{timeZone:"Europe/Bucharest"});
+async function sosiriZiua(it,btn){
+  btn.disabled=true;const txt=btn.textContent;btn.textContent="Caut…";
+  let j;
+  try{const r=await fetch(URL_ZBORURI,{cache:"no-store"});j=await r.json();if(j.eroare)throw new Error(j.eroare);}
+  catch(e){btn.disabled=false;btn.textContent=txt;toast("Nu pot afla acum sosirile. Încearcă din nou.");return;}
+  btn.disabled=false;btn.textContent=txt;
+  const lista=(j.sosiri||[]).filter(z=>z.prog&&ziRo(z.prog)===it.dayId).sort((a,b)=>a.prog-b.prog);
+  const [hh,mm]=(it.t||"").split(":").map(Number), tinta=it.t?hh*60+mm:null;
+  const minRo=s=>{const [h,m]=oraRo(s).split(":").map(Number);return h*60+m;};
+  const rand=z=>{
+    const ora=z.real||z.est||z.prog, dif=z.est&&z.prog?Math.round((z.est-z.prog)/60):0, min=Math.round((ora*1000-Date.now())/60000);
+    const stare=z.real?`<i class="sz ok">✓ ${oraRo(z.real)}</i>`:z.est?`<i class="sz est">${oraRo(z.est)}${dif>4?" +"+dif:""}${min>0&&min<180?` · ${min} min`:""}</i>`:`<i class="sz">programat</i>`;
+    const aproape=tinta!=null&&Math.abs(minRo(z.prog)-tinta)<=90;
+    return `<a class="picker-row${aproape?" aproape":""}" href="https://www.flightradar24.com/data/flights/${esc(z.nr.toLowerCase())}" target="_blank" rel="noopener">
+      <span><b>${oraRo(z.prog)} · ${esc(z.nr||"—")}</b><small>din ${esc(z.de_la||"?")}</small></span>${stare}</a>`;
+  };
+  const p=$("#picker");
+  p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Sosiri Aeroport Oradea">
+    <div class="picker-title">🛬 Sosiri Aeroport Oradea · ${esc(it.dayD||it.dayId)}</div>
+    <div class="picker-text">${lista.length?`Ora programată · zborul · ora reală sau estimată${it.t?`. Evidențiate: în jur de <b>${esc(it.t)}</b>`:""}.`:"FlightRadar24 nu are încă sosirile pentru ziua asta (le publică de obicei cu 1–2 zile înainte)."}</div>
+    ${lista.map(rand).join("")}
+    <button class="picker-cancel" type="button">Închide</button></div>`;
+  p.hidden=false;
+  p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
+  p.onclick=e=>{if(e.target===p)p.hidden=true;};
 }
 function toast(msg,undo){
   const t=$("#toast");t.textContent=msg;
