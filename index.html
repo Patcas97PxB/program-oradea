@@ -103,16 +103,18 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .day.all b{font-size:12.5px}
 .day[aria-pressed="true"]{border-color:transparent;background-image:var(--brand-gradient);background-size:250% 100%;color:#fff;box-shadow:0 8px 20px -10px rgba(124,58,237,.9)}
 .day[aria-pressed="true"] span{color:inherit;opacity:.85}
-.seg{display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:3px}
-.seg button{border:0;background:transparent;border-radius:9px;padding:7px;font-weight:700;font-size:13.5px;color:var(--muted)}
-.seg button[aria-pressed="true"]{background:var(--surface-3);color:var(--fg);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 0 0 1px var(--line)}
-.searching .days,.searching .seg{opacity:.35;pointer-events:none}
+.searching .days{opacity:.35;pointer-events:none}
 .banner-err{background:var(--service-bg);color:#ffb3c1;border:1px solid rgba(255,77,109,.35);border-radius:10px;padding:8px 10px;font-size:13px;font-weight:600}
 
 /* Listă */
 .list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 12px 18px;display:flex;flex-direction:column;gap:12px}
 .list>*{flex:none}
 .count{font-size:11px;color:var(--muted);padding:0 4px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.cap-lista{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:36px;flex-shrink:0}
+.pas{font:800 13px var(--f-ui);letter-spacing:0;text-transform:none;border-radius:999px;padding:8px 13px;min-height:36px;flex-shrink:0;border:1px solid var(--line);background:var(--surface);color:var(--fg);display:flex;gap:7px;align-items:center}
+.pas em{font-style:normal;background:var(--surface-3);border-radius:999px;padding:1px 7px;font-size:12px}
+.pas[aria-pressed="true"]{background:var(--brand-gradient);background-size:200% 100%;border-color:transparent;color:#fff}
+.pas[aria-pressed="true"] em{background:rgba(255,255,255,.22)}
 /* Cartonașul „bilet”, toate de aceeași înălțime: sus ora/tipul/rezervarea (stânga) și plăcuța (dreapta);
    linie punctată; clientul și adresa pe câte un rând; jos RFR + etichete + buton pe un singur rând */
 .card{position:relative;display:flex;flex-direction:column;text-align:left;width:100%;cursor:pointer;height:186px;
@@ -352,11 +354,6 @@ button.b-act{cursor:pointer}
       <button id="qClear" type="button" aria-label="Șterge căutarea" hidden>×</button>
     </div>
     <div class="days" id="days" role="group" aria-label="Ziua"></div>
-    <div class="seg" role="group" aria-label="Filtru">
-      <button data-f="mine" type="button" aria-pressed="true">Ale mele</button>
-      <button data-f="free" type="button" aria-pressed="false">Libere</button>
-      <button data-f="all" type="button" aria-pressed="false">Toate</button>
-    </div>
   </header>
 
   <main class="list" id="list"></main>
@@ -395,7 +392,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v49";
+const VERSIUNE_APP = "18.10 · v50";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -425,7 +422,7 @@ const ZILE_LUNG=["Duminică","Luni","Marți","Miercuri","Joi","Vineri","Sâmbăt
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
              set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const state={
-  token:store.get("po.token",""), me:store.get("po.me",""), rol:store.get("po.rol",""), user:store.get("po.user",""), filter:store.get("po.filter","mine"), day:null, q:"",
+  token:store.get("po.token",""), me:store.get("po.me",""), rol:store.get("po.rol",""), user:store.get("po.user",""), filter:"all", day:null, q:"",
   data:store.get("po.data",null), loading:false
 };
 ["po.assign","po.prog","po.rfr"].forEach(k=>{try{localStorage.removeItem(k)}catch(e){}}); // statusurile vechi, doar locale
@@ -673,15 +670,16 @@ function render(){
   }else{
     items=d.items.slice();
     if(state.filter==="mine") items=items.filter(it=>who(it).includes(state.me));
-    if(state.filter==="free") items=items.filter(it=>it.type!=="nota"&&!who(it).length&&!isDone(it));
   }
   items.sort((a,b)=>a.dayId!==b.dayId?(a.dayId<b.dayId?-1:1):((a.t||"99")<(b.t||"99")?-1:(a.t||"99")>(b.t||"99")?1:0));
   const todo=items.filter(it=>it.type!=="nota"&&!isDone(it)).length;
-  const head=searching?`${items.length} rezultat${items.length===1?"":"e"} pentru „${esc(q)}”`:`${d.lung} ${d.d} · ${items.length} intervenții · ${todo} de făcut`;
+  const nrMele=d.items.filter(it=>it.type!=="nota"&&who(it).includes(state.me)).length, mele=state.filter==="mine";
+  const pastila=searching?"":`<button class="pas" type="button" id="doarMele" aria-pressed="${mele}">Ale mele <em>${nrMele}</em></button>`;
+  const head=`<div class="count cap-lista"><span>${searching?`${items.length} rezultat${items.length===1?"":"e"} pentru „${esc(q)}”`:`${items.length} ${mele?(items.length===1?"a ta":"ale tale"):"intervenții"} · ${todo} de făcut`}</span>${pastila}</div>`;
   const empty=searching?`Nimic găsit pentru „${esc(q)}”.`
-    :{mine:`Nicio intervenție pentru ${esc(numeAfisat(state.me))} în ${d.d}.<br>Vezi „Libere” ca să-ți iei una.`,
-      free:`Toate intervențiile din ${d.d} au pe cineva.`,all:`Nicio intervenție în ${d.d}.`}[state.filter];
-  $("#list").innerHTML=items.length?`<div class="count">${head}</div>`+items.map(it=>card(it,searching)).join(""):`<div class="count">${head}</div><div class="empty">${empty}</div>`;
+    :mele?`Nu ai nicio intervenție în ${d.d}.<br>Apasă „Ale mele” ca să vezi toate intervențiile.`:`Nicio intervenție în ${d.d}.`;
+  $("#list").innerHTML=head+(items.length?items.map(it=>card(it,searching)).join(""):`<div class="empty">${empty}</div>`);
+  const pm=$("#doarMele"); if(pm) pm.onclick=()=>{state.filter=mele?"all":"mine";render();$("#list").scrollTop=0;};
 }
 
 const contacts=it=>it.contacts.length?it.contacts:[];
@@ -1038,10 +1036,6 @@ function arataLogin(msg){
 }
 
 // ---------- Evenimente ----------
-document.querySelectorAll(".seg button").forEach(b=>{
-  b.setAttribute("aria-pressed",b.dataset.f===state.filter);
-  b.onclick=()=>{state.filter=b.dataset.f;store.set("po.filter",state.filter);document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));render();};
-});
 $("#days").onclick=e=>{const b=e.target.closest("[data-id],[data-all]");if(!b)return;if(b.dataset.all){cereTot();return;}if(vreauTot())state.totPana=Date.now()+10*60000;state.day=b.dataset.id;renderDays();render();$("#list").scrollTop=0;};
 $("#list").onclick=e=>{
   const t=e.target.closest("[data-take]");if(t){takeFromCard(t.dataset.take);return;}
@@ -1136,7 +1130,6 @@ function deschideDinLink(){
   const it=ITEMS.find(x=>x.id===state.deschide);
   if(!it){ if(state.data&&state.data.doarAziMaine) cereTot(); else state.deschide=null; return; }
   state.deschide=null;state.day=it.dayId;state.filter="all";
-  document.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.f==="all"));
   renderDays();render();openDetail(it.id);
 }
 window.addEventListener("hashchange",()=>{citesteLink();deschideDinLink();});
