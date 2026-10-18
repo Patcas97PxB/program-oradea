@@ -257,7 +257,8 @@ button.b-act{cursor:pointer}
 .panou-rd:last-child{border-bottom:0}
 .panou-rd span:nth-child(3){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fde68a}
 .panou-rd .x{font-size:11.5px;color:#94a3b8;text-align:right;white-space:nowrap}
-.panou-rd .x.ok{color:#4ade80}.panou-rd .x.est{color:#7dd3fc}.panou-rd .x.tarziu{color:#f87171}
+.panou-rd .x.ok{color:#4ade80}.panou-rd .x.est{color:#7dd3fc}.panou-rd .x.tarziu{color:#f87171}.panou-rd .x.aer{color:#fde68a}
+.panou-rd .x{white-space:normal;max-width:150px;line-height:1.25}
 .zb-tarziu{color:#f87171}
 .panou-gol{padding:14px 12px 16px;font:600 13.5px var(--f-ui);color:#94a3b8;line-height:1.5;border-top:1px solid #1d2433}
 .picker-row .sz{font-style:normal;font-size:13px;font-weight:800;color:var(--muted);white-space:nowrap;background:transparent;border:0;padding:0;box-shadow:none}
@@ -420,7 +421,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v57";
+const VERSIUNE_APP = "18.10 · v58";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -1002,6 +1003,36 @@ function deschidePv(res,tip){
 const URL_ZBORURI="https://program-oradea-ceas.ceas.workers.dev/zboruri";
 const oraRo=s=>new Date(s*1000).toLocaleTimeString("ro-RO",{timeZone:"Europe/Bucharest",hour:"2-digit",minute:"2-digit"});
 const nrZbor=x=>String(x||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+// Orașele de pe FlightRadar24 (engleză) → română
+const ORASE={Bucharest:"București",Rome:"Roma",Milan:"Milano",Munich:"München",Warsaw:"Varșovia",Vienna:"Viena",Budapest:"Budapesta",
+  London:"Londra",Paris:"Paris",Brussels:"Bruxelles",Cologne:"Köln",Nuremberg:"Nürnberg",Memmingen:"Memmingen",Barcelona:"Barcelona",
+  Madrid:"Madrid",Valencia:"Valencia",Venice:"Veneția",Bologna:"Bologna",Turin:"Torino",Naples:"Napoli",Athens:"Atena",Istanbul:"Istanbul",
+  Antalya:"Antalya",Dubai:"Dubai",Tel:"Tel Aviv",Lisbon:"Lisabona",Copenhagen:"Copenhaga",Stockholm:"Stockholm",Geneva:"Geneva",Zurich:"Zürich"};
+const oras=x=>ORASE[x]||ORASE[String(x||"").split(" ")[0]]||x||"";
+// Ce face zborul acum. Sosiri: „nu a decolat încă” / „în zbor spre Oradea” / „aterizat”.
+// Plecări: „întârzie la decolare” / „în zbor spre <oraș>” / „decolat”. Roșu = peste 5 min întârziere sau anulat.
+function stareZbor(z,pl){
+  const acum=Date.now()/1000, D=z.dec||{}, A=z.ate||{}, min=x=>Math.round(x/60), tarziu=n=>n>5;
+  const lung=n=>n<60?n+" min":Math.floor(n/60)+" h "+(n%60)+" min";
+  if(/cancel/i.test(z.stare||z.status)) return {scurt:"ANULAT",lung:"Zborul a fost anulat.",rosu:true};
+  if(/divert/i.test(z.stare||z.status)) return {scurt:"DEVIAT",lung:"Zborul a fost deviat pe alt aeroport.",rosu:true};
+  const intDec=D.r&&D.p?min(D.r-D.p):D.e&&D.p?min(D.e-D.p):(!D.r&&D.p&&acum>D.p?min(acum-D.p):0);
+  if(!pl){
+    const intAte=A.r&&A.p?min(A.r-A.p):(A.e&&A.p?min(A.e-A.p):0);
+    if(A.r) return {scurt:`ATERIZAT ${oraRo(A.r)}${tarziu(intAte)?" +"+intAte:""}`,lung:`✓ A aterizat la ${oraRo(A.r)}${tarziu(intAte)?` <span class="zb-tarziu">(+${intAte} min)</span>`:""}`,rosu:tarziu(intAte),ok:!tarziu(intAte)};
+    if(D.r){const ora=A.e||A.p, n=ora?min(ora-acum):0;
+      return {scurt:`ÎN ZBOR · ${ora?oraRo(ora):"—"}${tarziu(intAte)?" +"+intAte:""}`,
+        lung:`În zbor spre Oradea (a decolat la ${oraRo(D.r)}) · aterizează la ${ora?oraRo(ora):"—"}${n>0?" · în "+lung(n):""}${tarziu(intAte)?` · <span class="zb-tarziu">+${intAte} min întârziere</span>`:""}`,rosu:tarziu(intAte),aer:true};}
+    if(tarziu(intDec)) return {scurt:`NU A DECOLAT +${intDec}`,
+      lung:`<span class="zb-tarziu">Întârziere la decolare: +${intDec} min</span> · încă nu a decolat${z.de_la?" din "+esc(oras(z.de_la)):""}${D.e?` (decolare estimată ${oraRo(D.e)})`:""}`,rosu:true};
+    const ora=A.e||A.p, n=ora?min(ora-acum):0;
+    return {scurt:A.e?`EST ${oraRo(A.e)}`:"PROGRAMAT",lung:`Programat la ${oraRo(ora)}${n>0?" · în "+lung(n):""} · decolează${z.de_la?" din "+esc(oras(z.de_la)):""} la ${oraRo(D.e||D.p)}`};
+  }
+  if(D.r&&!A.r) return {scurt:`ÎN ZBOR SPRE ${oras(z.spre).toUpperCase()}${tarziu(intDec)?" +"+intDec:""}`,lung:`În zbor spre ${esc(oras(z.spre))} (a decolat la ${oraRo(D.r)})`,rosu:tarziu(intDec),aer:true};
+  if(D.r) return {scurt:`DECOLAT ${oraRo(D.r)}${tarziu(intDec)?" +"+intDec:""}`,lung:`A decolat la ${oraRo(D.r)} spre ${esc(oras(z.spre))}`,rosu:tarziu(intDec),ok:!tarziu(intDec)};
+  if(tarziu(intDec)) return {scurt:`ÎNTÂRZIE LA DECOLARE +${intDec}`,lung:`Întârziere la decolare: +${intDec} min`,rosu:true};
+  return {scurt:D.e?`EST ${oraRo(D.e)}`:"PROGRAMAT",lung:`Decolează la ${oraRo(D.e||D.p)} spre ${esc(oras(z.spre))}`};
+}
 async function cautaZbor(zbor,btn){
   const rand=btn.closest(".d-li"), b=rand.querySelector("b");
   let info=rand.querySelector(".zb"); if(!info){info=document.createElement("span");info.className="zb";b.after(info);}
@@ -1014,13 +1045,7 @@ async function cautaZbor(zbor,btn){
     const acum=Date.now()/1000, aproape=L=>L.sort((a,b)=>Math.abs((a.est||a.prog)-acum)-Math.abs((b.est||b.prog)-acum))[0];
     const toate=j.sosiri||[], z=aproape(toate.filter(x=>nrZbor(x.nr)===cod))||aproape(toate.filter(x=>cifre&&nrZbor(x.nr).endsWith(cifre)));
     const fr=`https://www.flightradar24.com/data/flights/${(z?z.nr:cod).toLowerCase()}`;
-    let t;
-    if(!z) t=`Nu apare acum la sosirile Oradea.`;
-    else if(z.real) t=`✓ A aterizat la ${oraRo(z.real)}${z.de_la?" · din "+esc(z.de_la):""}`;
-    else{
-      const ora=z.est||z.prog, min=Math.round((ora*1000-Date.now())/60000), intarziere=z.est&&z.prog?Math.round((z.est-z.prog)/60):0;
-      t=`${z.est?"Aterizează":"Programat"} la ${oraRo(ora)}${min>0?` · în ${min<60?min+" min":Math.floor(min/60)+" h "+(min%60)+" min"}`:""}${intarziere>5?` · <span class="zb-tarziu">+${intarziere} min întârziere</span>`:""}${z.de_la?" · din "+esc(z.de_la):""}${z.est?"":" (fără estimare încă)"}`;
-    }
+    const t=z?stareZbor(z,false).lung:`Nu apare acum la sosirile Oradea.`;
     info.innerHTML=`${t} · <a href="${fr}" target="_blank" rel="noopener">pe hartă ↗</a>`;
   }catch(e){info.textContent="Nu pot afla acum zborul. Încearcă din nou.";}
   btn.disabled=false;btn.innerHTML=DI.avion+"Actualizează";
@@ -1042,16 +1067,13 @@ async function panouZboruri(zi,ziAfisata,tip="sosiri",btn){
   if(btn){btn.disabled=false;btn.innerHTML=txt;}
   const pl=tip==="plecari";
   const lista=(j.sosiri||[]).filter(z=>z.prog&&ziRo(z.prog)===zi).sort((a,b)=>a.prog-b.prog);
-  // întârziere = ora reală / estimată cu peste 5 min după cea programată → roșu, cu minutele
-  const intarzie=z=>{const o=z.real||z.est;return o&&z.prog?Math.round((o-z.prog)/60):0;};
-  const plus=z=>intarzie(z)>5?` +${intarzie(z)}`:"";
-  const stare=z=>z.real?`<span class="x ${intarzie(z)>5?"tarziu":"ok"}">${pl?"DECOLAT":"ATERIZAT"} ${oraRo(z.real)}${plus(z)}</span>`:z.est?`<span class="x ${intarzie(z)>5?"tarziu":"est"}">${intarzie(z)>5?"ÎNTÂRZIE ":"EST "}${oraRo(z.est)}${plus(z)}</span>`:`<span class="x">PROGRAMAT</span>`;
+  const stare=z=>{const st=stareZbor(z,pl);return `<span class="x ${st.rosu?"tarziu":st.ok?"ok":st.aer?"aer":z.ate&&z.ate.e||z.est?"est":""}">${st.scurt}</span>`;};
   const p=$("#picker");
   p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Zborurile Aeroportului Oradea">
     <div class="panou"><div class="panou-titlu">${pl?"PLECĂRI":"SOSIRI"} · ORADEA<small>${esc(ziAfisata||zi)}</small></div>
       <div class="panou-file"><button type="button" data-tip="sosiri" aria-pressed="${!pl}">SOSIRI</button><button type="button" data-tip="plecari" aria-pressed="${pl}">PLECĂRI</button></div>
       ${lista.length?`<div class="panou-cap"><span>ORA</span><span>ZBOR</span><span>${pl?"SPRE":"DIN"}</span><span>STARE</span></div>
-      ${lista.map(z=>`<a class="panou-rd" href="https://www.flightradar24.com/data/flights/${esc((z.nr||"").toLowerCase())}" target="_blank" rel="noopener"><span>${oraRo(z.prog)}</span><span>${esc(z.nr||"—")}</span><span>${esc(((pl?z.spre:z.de_la)||"?").toUpperCase())}</span>${stare(z)}</a>`).join("")}`
+      ${lista.map(z=>`<a class="panou-rd" href="https://www.flightradar24.com/data/flights/${esc((z.nr||"").toLowerCase())}" target="_blank" rel="noopener"><span>${oraRo(z.prog)}</span><span>${esc(z.nr||"—")}</span><span>${esc((oras(pl?z.spre:z.de_la)||"?").toUpperCase())}</span>${stare(z)}</a>`).join("")}`
       :`<div class="panou-gol">FlightRadar24 nu are încă ${pl?"plecările":"sosirile"} pentru ziua asta (le publică de obicei cu 1–2 zile înainte).</div>`}
     </div>
     <button class="picker-cancel" type="button">Închide</button></div>`;
