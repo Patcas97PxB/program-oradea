@@ -253,11 +253,23 @@ button.b-act{cursor:pointer}
 .panou{background:#05070c;border:1px solid #1d2433;border-radius:14px;overflow:hidden;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;flex:none}
 .panou-titlu{display:flex;justify-content:space-between;align-items:baseline;padding:12px 12px 10px;font:800 15px var(--f-ui);letter-spacing:.06em;color:#fff}
 .panou-titlu small{font-size:12px;color:#64748b;letter-spacing:0}
-.panou-cap,.panou-rd{display:grid;grid-template-columns:48px 70px minmax(0,1fr) auto;gap:8px;padding:9px 12px;align-items:center}
+.panou-cap,.panou-rd{display:grid;grid-template-columns:62px 86px minmax(0,1fr);gap:8px;padding:9px 12px;align-items:center}
 .panou-cap{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:#64748b;border-top:1px solid #1d2433;border-bottom:1px solid #1d2433}
 .panou-rd{min-height:44px;font-size:13.5px;font-weight:700;color:#fcd34d;border-bottom:1px solid #121826;text-decoration:none}
 .panou-rd:last-child{border-bottom:0}
-.panou-rd span:nth-child(3){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fde68a}
+.panou-rd span:nth-child(3){overflow:hidden;color:#fde68a}
+.tabla{display:flex;gap:1px;min-width:0}
+/* starea stă sub plăcuțe, aliniată la dreapta, ca să încapă tabela pe ecranul telefonului */
+.panou-rd .x{grid-column:1/-1;justify-self:end;margin-top:-2px;max-width:none!important}
+.panou-cap span:nth-child(4){display:none}
+.fl{flex:none;width:11px;height:20px;display:grid;place-items:center;border-radius:2px;position:relative;overflow:hidden;
+  background:linear-gradient(180deg,#1b2231 0 49%,#141a26 51% 100%);color:#fcd34d;font:700 12.5px/1 ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.04),0 1px 1px rgba(0,0,0,.6)}
+.fl::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(0,0,0,.75)}
+.tabla.oras .fl{color:#fde68a}
+.fl.a{animation:clacA 90ms cubic-bezier(.23,1,.32,1)}.fl.b{animation:clacB 90ms cubic-bezier(.23,1,.32,1)}
+@keyframes clacA{from{transform:perspective(60px) rotateX(-70deg);filter:brightness(.6)}}
+@keyframes clacB{from{transform:perspective(60px) rotateX(-70deg);filter:brightness(.6)}}
 .panou-rd .x{font-size:11.5px;color:#94a3b8;text-align:right;white-space:nowrap}
 .panou-rd .x.ok{color:#4ade80}.panou-rd .x.est{color:#7dd3fc}.panou-rd .x.tarziu{color:#f87171}.panou-rd .x.aer{color:#fde68a}
 .panou-rd .x{white-space:normal;max-width:150px;line-height:1.25}
@@ -333,8 +345,7 @@ button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-act
 .picker:not([hidden]){animation:voal 260ms var(--ease-out)}
 .picker:not([hidden]) .picker-card{animation:urca 380ms var(--ease-drawer)}
 @keyframes rand{from{opacity:0;transform:translateY(10px)}}
-.picker:not([hidden]):not([data-fara-anim]) .panou-rd,.picker:not([hidden]):not([data-fara-anim]) .picker-row{animation:rand 320ms var(--ease-out) backwards}
-.picker[data-fara-anim] .panou-rd{animation:rand 220ms var(--ease-out) backwards}
+.picker:not([hidden]):not([data-fara-anim]) .picker-row{animation:rand 320ms var(--ease-out) backwards}
 .panou-rd:nth-of-type(1),.picker-row:nth-of-type(1){animation-delay:120ms!important}.panou-rd:nth-of-type(2),.picker-row:nth-of-type(2){animation-delay:155ms!important}.panou-rd:nth-of-type(3),.picker-row:nth-of-type(3){animation-delay:190ms!important}.panou-rd:nth-of-type(4),.picker-row:nth-of-type(4){animation-delay:225ms!important}.panou-rd:nth-of-type(5),.picker-row:nth-of-type(5){animation-delay:260ms!important}.panou-rd:nth-of-type(6),.picker-row:nth-of-type(6){animation-delay:295ms!important}.panou-rd:nth-of-type(7),.picker-row:nth-of-type(7){animation-delay:330ms!important}.panou-rd:nth-of-type(8),.picker-row:nth-of-type(8){animation-delay:365ms!important}.panou-rd:nth-of-type(9),.picker-row:nth-of-type(9){animation-delay:400ms!important}.panou-rd:nth-of-type(10),.picker-row:nth-of-type(10){animation-delay:435ms!important}.panou-rd:nth-of-type(11),.picker-row:nth-of-type(11){animation-delay:470ms!important}.panou-rd:nth-of-type(12),.picker-row:nth-of-type(12){animation-delay:505ms!important}.panou-rd:nth-of-type(13),.picker-row:nth-of-type(13){animation-delay:540ms!important}.panou-rd:nth-of-type(14),.picker-row:nth-of-type(14){animation-delay:575ms!important}
 .picker[data-fara-anim] .picker-card,.picker[data-fara-anim]{animation:none}
 /* zone de atingere ≥44 px: butoanele mici primesc o margine invizibilă de apăsare */
@@ -447,7 +458,7 @@ button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-act
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v62";
+const VERSIUNE_APP = "18.10 · v63";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -1086,6 +1097,36 @@ async function iaZboruri(tip){
   if(j.eroare) throw new Error(j.eroare);
   return ZBORURI[tip]=j;
 }
+// Tabelă de aeroport cu plăcuțe rotative (split-flap): fiecare caracter se rotește prin litere/cifre și se oprește pe cel corect.
+// Rândurile pornesc decalat, starea apare după ce s-a oprit rândul. Cu „Reducere mișcare”: direct textul final.
+const PALETA_CAR="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+function paleta(root,rapid){
+  const fara=matchMedia("(prefers-reduced-motion: reduce)").matches, tiles=[], PAS=rapid?45:58;
+  root.querySelectorAll(".panou-rd").forEach((rd,ri)=>{
+    let sfarsit=0;
+    rd.querySelectorAll(".tabla").forEach((tb,ci)=>{
+      const t=tb.dataset.t||"";
+      tb.innerHTML=[...t].map(ch=>`<i class="fl">${fara?(ch===" "?"&nbsp;":ch.replace(/[<&]/g,"")):"&nbsp;"}</i>`).join("");
+      if(fara)return;
+      [...tb.children].forEach((el,k)=>{const st=(rapid?40:140)+ri*(rapid?28:48)+ci*30+k*16, fl=(rapid?4:8)+((ri*3+k)%5);
+        tiles.push({el,fin:t[k],st,fl});sfarsit=Math.max(sfarsit,st+fl*PAS);});
+    });
+    const x=rd.querySelector(".x");
+    if(x&&!fara){x.style.opacity=0;setTimeout(()=>{x.style.transition="opacity 220ms ease-out";x.style.opacity=1;},sfarsit);}
+  });
+  if(fara||!tiles.length)return;
+  const t0=performance.now();
+  (function pas(now){
+    let gata=true;
+    for(const T of tiles){
+      const n=Math.floor((now-t0-T.st)/PAS);
+      if(n<0){gata=false;continue;}
+      if(n<T.fl){gata=false;if(n!==T.n){T.n=n;T.el.textContent=PALETA_CAR[(Math.random()*PALETA_CAR.length)|0];T.el.className="fl "+(n%2?"a":"b");}}
+      else if(!T.gata){T.gata=true;T.el.textContent=T.fin===" "?"\u00a0":T.fin;T.el.className="fl "+((T.n||0)%2?"b":"a");}
+    }
+    if(!gata&&root.isConnected)requestAnimationFrame(pas);
+  })(t0);
+}
 async function panouZboruri(zi,ziAfisata,tip="sosiri",btn){
   const txt=btn&&btn.innerHTML; if(btn){btn.disabled=true;if(btn.id!=="btnZboruri")btn.innerHTML=DI.avion+"Caut…";}
   let j;
@@ -1099,11 +1140,12 @@ async function panouZboruri(zi,ziAfisata,tip="sosiri",btn){
     <div class="panou"><div class="panou-titlu">${pl?"PLECĂRI":"SOSIRI"} · ORADEA<small>${esc(ziAfisata||zi)}</small></div>
       <div class="panou-file"><button type="button" data-tip="sosiri" aria-pressed="${!pl}">SOSIRI</button><button type="button" data-tip="plecari" aria-pressed="${pl}">PLECĂRI</button></div>
       ${lista.length?`<div class="panou-cap"><span>ORA</span><span>ZBOR</span><span>${pl?"SPRE":"DIN"}</span><span>STARE</span></div>
-      ${lista.map(z=>`<a class="panou-rd" href="https://www.flightradar24.com/data/flights/${esc((z.nr||"").toLowerCase())}" target="_blank" rel="noopener"><span>${oraRo(z.prog)}</span><span>${esc(z.nr||"—")}</span><span>${esc((oras(pl?z.spre:z.de_la)||"?").toUpperCase())}</span>${stare(z)}</a>`).join("")}`
+      ${lista.map(z=>`<a class="panou-rd" href="https://www.flightradar24.com/data/flights/${esc((z.nr||"").toLowerCase())}" target="_blank" rel="noopener"><span class="tabla" data-t="${oraRo(z.prog)}"></span><span class="tabla" data-t="${esc((z.nr||"—").slice(0,7))}"></span><span class="tabla oras" data-t="${esc((oras(pl?z.spre:z.de_la)||"?").toUpperCase().slice(0,12))}"></span>${stare(z)}</a>`).join("")}`
       :`<div class="panou-gol">FlightRadar24 nu are încă ${pl?"plecările":"sosirile"} pentru ziua asta (le publică de obicei cu 1–2 zile înainte).</div>`}
     </div>
     <button class="picker-cancel" type="button">Închide</button></div>`;
   p.hidden=false;
+  paleta(p,!!p.dataset.faraAnim);
   p.querySelectorAll("[data-tip]").forEach(x=>x.onclick=()=>{if(x.dataset.tip!==tip)panouZboruri(zi,ziAfisata,x.dataset.tip);});
   p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
   p.onclick=e=>{if(e.target===p)p.hidden=true;};
