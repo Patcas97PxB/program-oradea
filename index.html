@@ -30,7 +30,7 @@
   --nota:#94a3b8; --nota-bg:rgba(148,163,184,.12);
   --rfr:#ff4fff; --on-ok:#052e16;
   --brand-gradient:linear-gradient(110deg,#2563eb 0%,#7c3aed 45%,#0ea5e9 75%,#2563eb 100%);
-  --card-gradient:linear-gradient(165deg,#15224a 0%,#101a36 55%,#0e1530 100%);
+  --card-gradient:linear-gradient(165deg,#181c25 0%,#13171f 55%,#10131a 100%);
   --shadow:0 0 0 1px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06),0 10px 28px -16px rgba(0,0,0,.9);
   --f-ui:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
@@ -56,12 +56,17 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .app{position:fixed;top:0;left:0;right:0;height:var(--inaltime,100%);max-width:560px;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;overflow:clip}
 
 /* Antet */
-.top{background:rgba(7,11,20,.82);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line-soft);
+.top{position:relative;border-bottom:0;background:
+  linear-gradient(180deg,transparent 45%,rgba(10,14,23,.75) 82%,#0a0e17 100%),
+  radial-gradient(260px 200px at 92% 0%,rgba(43,31,208,.38),transparent 70%),
+  radial-gradient(220px 170px at 100% 55%,rgba(20,123,209,.18),transparent 70%),
+  radial-gradient(240px 170px at 60% 95%,rgba(112,64,192,.18),transparent 70%),
+  linear-gradient(180deg,#0c0f18 0%,#0a0e17 100%);
   padding:calc(var(--sat) + 22px) 16px 12px;display:flex;flex-direction:column;gap:11px}
 .top-row{display:flex;align-items:center;gap:10px}
 .brand{font-weight:800;font-size:18px;letter-spacing:-.01em;min-width:0;flex:1;display:flex;flex-direction:column;align-items:flex-start}
-.logo-po{flex:none;width:38px;height:38px;border-radius:11px;background:#10069f;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;position:relative;padding-bottom:4px}
-.logo-po::after{content:"";position:absolute;bottom:8px;left:9px;right:9px;height:3px;border-radius:2px;background:linear-gradient(90deg,#00c060 0 30%,transparent 30% 35%,#147bd1 35% 65%,transparent 65% 70%,#7040c0 70%)}
+.logo-po{flex:none;width:42px;height:42px;border-radius:12px;background:#0a0e17;box-shadow:0 0 0 1px #253150,0 6px 16px -8px rgba(0,0,0,.8);display:grid;place-items:center}
+.logo-po svg{width:42px;height:42px;display:block}
 .live{display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:2px 0 0;color:var(--muted);font:600 12px var(--f-ui);max-width:100%;cursor:pointer}
 .live span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .live i{flex:none;width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)}
@@ -93,7 +98,7 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
 .search input::placeholder{color:#64748b}
 .search input::-webkit-search-cancel-button{display:none}
 .search button{border:0;background:var(--surface-3);color:var(--muted);width:26px;height:26px;border-radius:50%;font-size:17px;line-height:1;flex:none}
-.days{display:grid;grid-template-columns:40px minmax(0,1fr) 40px;align-items:center;gap:8px}
+.days{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:8px}
 .zi-sag{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:800 20px var(--f-ui);line-height:1;display:grid;place-items:center;padding:0 0 2px}
 .zi-sag:disabled{opacity:.25}
 .zi-mij{text-align:center;min-width:0}
@@ -356,6 +361,37 @@ button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-act
 .b-act::before{content:"";position:absolute;inset:-5px -4px}
 /* cartonașe: o lumină fină pe muchia de sus, ca să se desprindă de fundal */
 .card.b{box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.05)}
+/* antet B1·L1: salut, „soldul” zilei, acțiuni rotunde */
+.salut{flex-direction:column;align-items:flex-start;gap:1px}
+.salut small{font-size:12px;font-weight:600;color:rgba(226,232,240,.72);letter-spacing:0}
+.salut b{font-size:17px;font-weight:800;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .icon-btn{border-radius:50%;background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.13);color:#e2e8f0;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.sold{display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin-top:2px}
+.sold .live{color:#86efac;font-weight:700}
+.sold .live.vechi{color:#fcd34d}
+.sold-mare{display:flex;align-items:baseline;gap:8px;min-width:0}
+.sold-mare b{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.sold-mare span{font-size:17px;font-weight:700;color:rgba(226,232,240,.8)}
+.sold-sub{font-size:13px;font-weight:600;color:rgba(226,232,240,.72)}
+.actiuni-sus{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:4px}
+.act-sus{display:flex;flex-direction:column;align-items:center;gap:6px;border:0;background:none;color:#e2e8f0;font:700 12px var(--f-ui);padding:0;min-height:44px;transition:transform 160ms var(--ease-out)}
+.act-sus .cerc{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12);transition:background 200ms var(--ease-out),color 200ms var(--ease-out)}
+.act-sus .cerc svg{width:21px;height:21px}
+.act-sus[aria-pressed="true"] .cerc,.act-sus[aria-expanded="true"] .cerc{background:#fff;color:#10069F;border-color:#fff}
+.act-sus:active{transform:scale(.92)}
+.act-sus:disabled{opacity:.6}
+.zile-row b{font-size:15px}
+/* cartonașele: gri închis, în ton cu fundalul (nu albastru) */
+.card,.box{border-color:#252a35}
+/* selectorul de zi: bară de sticlă care continuă antetul, nu un bloc separat */
+.top .days{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:6px;margin-top:2px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.top .zi-sag{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.top .zi-sag:disabled{opacity:.3}
+/* lista intră sub antet cu o margine estompată, nu tăiată */
+.list{padding-top:6px;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 14px);mask-image:linear-gradient(180deg,transparent 0,#000 14px)}
+.rand-cauta[hidden]{display:none}
 .picker{position:absolute;inset:0;z-index:45;background:rgba(3,6,12,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:flex-end}
 .picker-card{width:100%;background:#10172a;border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:16px 14px calc(var(--sab) + 16px);
   display:flex;flex-direction:column;gap:8px;max-height:85%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
@@ -376,7 +412,7 @@ button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-act
 
 /* Prima pornire */
 .setup{position:absolute;inset:0;z-index:40;background:var(--bg);overflow-y:auto;padding:calc(var(--sat) + 40px) 22px calc(var(--sab) + 30px);display:flex;flex-direction:column;gap:18px}
-.setup img{width:76px;height:76px;border-radius:20px;box-shadow:0 12px 30px -12px rgba(16,6,159,.9)}
+.setup img{width:76px;height:76px;border-radius:20px;box-shadow:0 0 0 1px #253150,0 12px 30px -14px rgba(0,0,0,.9)}
 .setup h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em}
 .setup p{margin:0;color:var(--muted)}
 .setup label{display:flex;flex-direction:column;gap:6px;font-weight:700;font-size:13px;color:var(--muted)}
@@ -401,8 +437,8 @@ button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-act
 <div class="app" id="app">
   <header class="top">
     <div class="top-row">
-      <span class="logo-po" aria-hidden="true">PO</span>
-      <div class="brand">Program Oradea<button class="live" id="refresh" type="button" aria-label="Actualizează programul"><i></i><span id="subtitle">Se încarcă…</span></button></div>
+      <span class="logo-po" aria-label="Program Oradea" role="img"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="17" cy="19" r="3.4" fill="#f59e0b"/><circle cx="17" cy="28" r="3.4" fill="#22c55e"/><circle cx="17" cy="37" r="3.4" fill="#3b82f6"/><circle cx="17" cy="46" r="3.4" fill="#ff4d6d"/><g stroke="#fff" stroke-width="4.2" stroke-linecap="round"><path d="M25 19h24M25 28h24M25 37h20M25 46h14"/></g></svg></span>
+      <div class="brand salut"><small>Bună,</small><b id="salutNume">&nbsp;</b></div>
       <div class="top-actions">
         <button class="icon-btn bell" id="bell" type="button" aria-label="Notificări" hidden>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>
@@ -410,14 +446,24 @@ button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-act
         <button class="me-btn av" id="meBtn" type="button" aria-label="Contul meu"></button>
       </div>
     </div>
+    <div class="sold" id="sold">
+      <button class="live" id="refresh" type="button" aria-label="Actualizează programul"><i></i><span id="subtitle">Se încarcă…</span></button>
+      <div class="sold-mare"><b id="soldNr">–</b><span id="soldEt">intervenții ale tale azi</span></div>
+      <div class="sold-sub" id="soldSub">&nbsp;</div>
+    </div>
+    <div class="actiuni-sus" role="group" aria-label="Acțiuni">
+      <button class="act-sus" id="actMele" type="button" aria-pressed="false"><span class="cerc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>Ale mele</button>
+      <button class="act-sus" id="actCauta" type="button" aria-expanded="false"><span class="cerc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span>Caută</button>
+      <button class="act-sus" id="btnZboruri" type="button" aria-label="Zborurile Aeroportului Oradea"><span class="cerc" id="icZbor"></span>Zboruri</button>
+      <button class="act-sus" id="actZile" type="button"><span class="cerc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span>Zile</button>
+    </div>
     <div class="banner-err" id="err" hidden></div>
-    <div class="rand-cauta">
+    <div class="rand-cauta" id="randCauta" hidden>
     <div class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="Caută: nr. auto, nume, RZO…" autocomplete="off" aria-label="Caută intervenții">
       <button id="qClear" type="button" aria-label="Șterge căutarea" hidden>×</button>
     </div>
-    <button class="btn-zboruri" id="btnZboruri" type="button" aria-label="Zborurile Aeroportului Oradea"></button>
     </div>
     <div class="days" id="days" role="group" aria-label="Ziua"></div>
   </header>
@@ -458,7 +504,7 @@ button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-act
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v65";
+const VERSIUNE_APP = "19.10 · v66";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -740,14 +786,41 @@ function render(){
   items.sort((a,b)=>a.dayId!==b.dayId?(a.dayId<b.dayId?-1:1):((a.t||"99")<(b.t||"99")?-1:(a.t||"99")>(b.t||"99")?1:0));
   const todo=items.filter(it=>it.type!=="nota"&&!isDone(it)).length;
   const nrMele=d.items.filter(it=>it.type!=="nota"&&who(it).includes(state.me)).length, mele=state.filter==="mine";
-  const pastila=searching?"":`<button class="pas" type="button" id="doarMele" aria-pressed="${mele}">Ale mele <em>${nrMele}</em></button>`;
+  const pastila="";
   const head=`<div class="count cap-lista"><span>${searching?`${items.length} rezultat${items.length===1?"":"e"} pentru „${esc(q)}”`:`${items.length} ${mele?(items.length===1?"a ta":"ale tale"):"intervenții"} · ${todo} de făcut`}</span>${pastila}</div>`;
   const empty=searching?`Nimic găsit pentru „${esc(q)}”.`
     :mele?`Nu ai nicio intervenție în ${d.d}.<br>Apasă „Ale mele” ca să vezi toate intervențiile.`:`Nicio intervenție în ${d.d}.`;
   $("#list").innerHTML=head+(items.length?items.map(it=>card(it,searching)).join(""):`<div class="empty">${empty}</div>`);
-  const pm=$("#doarMele"); if(pm) pm.onclick=()=>{state.filter=mele?"all":"mine";render();$("#list").scrollTop=0;};
+  sold(d,nrMele,mele);
 }
 
+// Antet: „soldul” zilei alese — câte intervenții ai tu, câte sunt în total, câte mai sunt de făcut, următoarea a ta
+function sold(d,nrMele,mele){
+  const azi=isoAzi(), toate=d.items.filter(it=>it.type!=="nota"), defacut=toate.filter(it=>!isDone(it)).length;
+  const aleMele=toate.filter(it=>who(it).includes(state.me)&&!isDone(it)).sort((a,b)=>(a.t||"99")<(b.t||"99")?-1:1);
+  const acum=new Date(), hm=pad(acum.getHours())+":"+pad(acum.getMinutes());
+  const urm=d.id===azi?(aleMele.find(it=>it.t&&it.t>=hm)||aleMele[0]):aleMele[0];
+  $("#soldNr").textContent=nrMele;
+  $("#soldEt").textContent=(nrMele===1?"intervenție a ta":"intervenții ale tale")+(d.id===azi?" azi":" · "+d.lung.toLowerCase());
+  $("#soldSub").textContent=`${toate.length} în total · ${defacut} de făcut`+(urm&&urm.t?` · următoarea la ${urm.t}`:"");
+  $("#actMele").setAttribute("aria-pressed",mele);
+}
+// „Zile”: lista cu toate zilele programului (câte intervenții, câte ale tale); alegi una
+function alegeZi(){
+  if(state.data&&state.data.doarAziMaine) cereTot();
+  const p=$("#picker"), azi=isoAzi();
+  const rand=d=>{const t=d.items.filter(it=>it.type!=="nota"),m=t.filter(it=>who(it).includes(state.me)).length,dt=new Date(d.id+"T12:00:00");
+    return `<button class="picker-row zile-row" type="button" data-zi="${d.id}" aria-current="${d.id===state.day}"><span><b>${d.id===azi?"Azi · ":""}${d.lung}, ${dt.getDate()} ${LUNI[dt.getMonth()]}</b><small>${t.length} intervenții${m?` · ${m} ale tale`:""}</small></span>${d.id===state.day?"<i>Acum</i>":""}</button>`;};
+  const desen=()=>{p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Alege ziua"><div class="picker-title">Alege ziua</div>
+    ${DAYS.map(rand).join("")}${state.data&&state.data.doarAziMaine?`<div class="picker-text">Se încarcă și celelalte zile…</div>`:""}
+    <button class="picker-cancel" type="button">Închide</button></div>`;
+    p.querySelectorAll("[data-zi]").forEach(b=>b.onclick=()=>{state.day=b.dataset.zi;p.hidden=true;renderDays();render();$("#list").scrollTop=0;});
+    p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;};
+  delete p.dataset.faraAnim;desen();p.hidden=false;p.onclick=e=>{if(e.target===p)p.hidden=true;};
+  // când sosesc toate zilele, lista se completează (fără să urce din nou foaia)
+  if(state.data&&state.data.doarAziMaine){const t0=Date.now(),iv=setInterval(()=>{if(p.hidden||Date.now()-t0>15000)return clearInterval(iv);
+    if(!(state.data&&state.data.doarAziMaine)){clearInterval(iv);p.dataset.faraAnim="1";desen();}},500);}
+}
 const contacts=it=>it.contacts.length?it.contacts:[];
 const DI={
   om:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
@@ -1177,7 +1250,7 @@ function toggleRfr(id){
 function seteazaSesiune(j){
   Object.assign(state,{token:j.token,me:j.cine,rol:j.rol,user:j.user});
   store.set("po.token",j.token);store.set("po.me",j.cine);store.set("po.rol",j.rol);store.set("po.user",j.user);
-  $("#meBtn").textContent=initiale(j.cine);
+  $("#meBtn").textContent=initiale(j.cine);$("#salutNume").textContent=numeAfisat(j.cine);
 }
 function arataLogin(msg){
   $("#picker").hidden=true;$("#sheet").classList.remove("open");
@@ -1218,7 +1291,12 @@ function arataLogin(msg){
 }
 
 // ---------- Evenimente ----------
-$("#btnZboruri").innerHTML=DI.avion;
+$("#icZbor").innerHTML=DI.avion;
+$("#actMele").onclick=()=>{state.filter=state.filter==="mine"?"all":"mine";render();$("#list").scrollTop=0;};
+$("#actCauta").onclick=()=>{const r=$("#randCauta"),b=$("#actCauta"),des=r.hidden;
+  if(!des&&state.q){state.q="";$("#q").value="";$("#qClear").hidden=true;render();}
+  r.hidden=!des;b.setAttribute("aria-expanded",des);if(des)$("#q").focus();};
+$("#actZile").onclick=alegeZi;
 $("#btnZboruri").onclick=()=>{const d=DAYS.find(x=>x.id===state.day)||DAYS[0];const azi=new Date().toLocaleDateString("sv-SE",{timeZone:"Europe/Bucharest"});
   panouZboruri(d?d.id:azi,d?d.d:"",undefined,$("#btnZboruri"));};
 $("#days").onclick=e=>{const b=e.target.closest("[data-id],[data-all]");if(!b)return;if(b.dataset.all){cereTot();return;}if(vreauTot())state.totPana=Date.now()+10*60000;state.day=b.dataset.id;renderDays();render();$("#list").scrollTop=0;};
@@ -1339,7 +1417,7 @@ setInterval(subtitlu,30000);
 
 // Pornire. Cheia se poate da și printr-un link de configurare: ...#k=CHEIA (nu ajunge la server).
 try{localStorage.removeItem("po.key")}catch(e){} // cheia comună veche nu se mai folosește
-$("#meBtn").textContent=initiale(state.me);
+$("#meBtn").textContent=initiale(state.me);$("#salutNume").textContent=numeAfisat(state.me)||"";
 citesteLink();
 pregateste();renderDays();render();deschideDinLink();
 stareClopotel();
