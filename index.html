@@ -127,8 +127,8 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
   background:var(--card-gradient);border:1px solid var(--line);border-radius:16px;padding:0;
   box-shadow:var(--shadow),0 0 22px -14px var(--t);overflow:hidden}
 .card::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px;border-radius:0 4px 4px 0;background:var(--t);box-shadow:0 0 12px var(--t)}
-.card{transition:transform 160ms var(--ease-out)}
-.card:active{transform:scale(.985)}
+.card{transition:transform 160ms var(--ease-out),filter 160ms var(--ease-out)}
+.card:active{transform:scale(.96);filter:brightness(1.15)}
 .card.done{opacity:.5}
 /* Varianta B · bilet subțire (aleasă 17.10): sus ora · tipul · etichete · rezervarea; jos RFR · plăcuța · clientul;
    în dreapta un singur buton (Iau eu / Finalizat) sau cine o are. Aceeași înălțime pentru toate. */
@@ -227,7 +227,7 @@ button.b-act{cursor:pointer}
 .info-date p{margin:0}
 
 /* Detalii */
-.sheet{position:absolute;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;transform:translateX(100%);transition:transform 300ms var(--ease-drawer)}
+.sheet{position:absolute;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;transform:translateX(100%);transition:transform 360ms var(--ease-drawer)}
 .sheet.open{transform:none}
 /* Detalii (ales 17.10): antet 3D · listă cu iconițe · bară de acțiuni jos */
 .d-cap{position:relative;overflow:hidden;color:#fff;padding:calc(var(--sat) + 22px) 16px 20px;display:flex;flex-direction:column;gap:10px;
@@ -324,14 +324,18 @@ button.b-act{cursor:pointer}
 :root{--ease-out:cubic-bezier(.23,1,.32,1);--ease-drawer:cubic-bezier(.32,.72,0,1)}
 /* apăsare: tot ce se poate atinge răspunde imediat (scale .97, 160 ms) */
 button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.d-main,.d-mini,.d-rot,.d-rfr,.card-take,.pas,.btn-zboruri,.icon-btn,.back,.panou-file button,.picker-cancel,.picker-row,.panou-rd,.pax-call,.link-btn{transition:transform 160ms var(--ease-out)}
-.d-main:active,.d-mini:active,.d-rot:active,.d-rfr:active,.card-take:active,.pas:active,.btn-zboruri:active,.icon-btn:active,.back:active,.panou-file button:active,.picker-cancel:active,.pax-call:active,.link-btn:active{transform:scale(.97)}
-.picker-row:active,.panou-rd:active{transform:scale(.985)}
+.d-main,.d-mini,.d-rot,.d-rfr,.card-take,.pas,.btn-zboruri,.icon-btn,.back,.panou-file button,.picker-cancel,.picker-row,.panou-rd,.pax-call,.link-btn{transition:transform 160ms var(--ease-out),filter 160ms var(--ease-out)}
+.d-main:active,.d-mini:active,.d-rot:active,.d-rfr:active,.card-take:active,.pas:active,.btn-zboruri:active,.icon-btn:active,.back:active,.panou-file button:active,.picker-cancel:active,.pax-call:active,.link-btn:active{transform:scale(.92);filter:brightness(.82)}
+.picker-row:active,.panou-rd:active{transform:scale(.96);filter:brightness(1.25)}
 /* fereastra de jos (Sosiri, Pe cine suni, Contul meu): fundalul apare, foaia urcă din jos */
 @keyframes voal{from{opacity:0}}
 @keyframes urca{from{transform:translateY(100%)}}
-.picker:not([hidden]){animation:voal 200ms var(--ease-out)}
-.picker:not([hidden]) .picker-card{animation:urca 300ms var(--ease-drawer)}
+.picker:not([hidden]){animation:voal 260ms var(--ease-out)}
+.picker:not([hidden]) .picker-card{animation:urca 380ms var(--ease-drawer)}
+@keyframes rand{from{opacity:0;transform:translateY(10px)}}
+.picker:not([hidden]):not([data-fara-anim]) .panou-rd,.picker:not([hidden]):not([data-fara-anim]) .picker-row{animation:rand 320ms var(--ease-out) backwards}
+.picker[data-fara-anim] .panou-rd{animation:rand 220ms var(--ease-out) backwards}
+.panou-rd:nth-of-type(1),.picker-row:nth-of-type(1){animation-delay:120ms!important}.panou-rd:nth-of-type(2),.picker-row:nth-of-type(2){animation-delay:155ms!important}.panou-rd:nth-of-type(3),.picker-row:nth-of-type(3){animation-delay:190ms!important}.panou-rd:nth-of-type(4),.picker-row:nth-of-type(4){animation-delay:225ms!important}.panou-rd:nth-of-type(5),.picker-row:nth-of-type(5){animation-delay:260ms!important}.panou-rd:nth-of-type(6),.picker-row:nth-of-type(6){animation-delay:295ms!important}.panou-rd:nth-of-type(7),.picker-row:nth-of-type(7){animation-delay:330ms!important}.panou-rd:nth-of-type(8),.picker-row:nth-of-type(8){animation-delay:365ms!important}.panou-rd:nth-of-type(9),.picker-row:nth-of-type(9){animation-delay:400ms!important}.panou-rd:nth-of-type(10),.picker-row:nth-of-type(10){animation-delay:435ms!important}.panou-rd:nth-of-type(11),.picker-row:nth-of-type(11){animation-delay:470ms!important}.panou-rd:nth-of-type(12),.picker-row:nth-of-type(12){animation-delay:505ms!important}.panou-rd:nth-of-type(13),.picker-row:nth-of-type(13){animation-delay:540ms!important}.panou-rd:nth-of-type(14),.picker-row:nth-of-type(14){animation-delay:575ms!important}
 .picker[data-fara-anim] .picker-card,.picker[data-fara-anim]{animation:none}
 .picker{position:absolute;inset:0;z-index:45;background:rgba(3,6,12,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:flex-end}
 .picker-card{width:100%;background:#10172a;border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:16px 14px calc(var(--sab) + 16px);
@@ -345,9 +349,9 @@ button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-act
 .picker-row i{font-style:normal;font-weight:800;font-size:13px;color:var(--on-ok);background:var(--predare);border-radius:9px;padding:6px 11px}
 .picker-row[aria-pressed="true"]{border-color:#3b82f6;background:rgba(37,99,235,.2)}
 .picker-cancel{margin-top:4px;border:0;background:transparent;color:var(--muted);font-weight:700;padding:10px}
-.toast{position:absolute;left:50%;bottom:calc(var(--sab) + 22px);z-index:30;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+.toast{position:absolute;left:50%;bottom:calc(var(--sab) + 22px);z-index:30;transform:translate(-50%,28px) scale(.94);opacity:0;pointer-events:none;
   background:#232d45;color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:11px 14px;font-weight:700;font-size:13.5px;
-  width:max-content;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.5);transition:opacity 200ms var(--ease-out),transform 200ms var(--ease-out)}
+  width:max-content;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.5);transition:opacity 240ms var(--ease-out),transform 240ms var(--ease-out)}
 .toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .toast button{margin-left:12px;border:0;background:transparent;color:#93c5fd;font-weight:800;text-decoration:underline;padding:0}
 
@@ -435,7 +439,7 @@ button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-act
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v60";
+const VERSIUNE_APP = "18.10 · v61";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
