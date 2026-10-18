@@ -435,7 +435,7 @@ button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-act
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v59";
+const VERSIUNE_APP = "18.10 · v60";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -1179,6 +1179,8 @@ $("#qClear").onclick=()=>{state.q="";$("#q").value="";$("#qClear").hidden=true;r
 $("#refresh").onclick=()=>incarca(true);
 $("#subsol").textContent=DREPTURI;
 // Fundalul stă pe loc: se derulează doar lista, detaliile și ferestrele; restul ecranului nu „trage” pagina.
+// iOS Safari aplică :active (efectul de apăsare) doar dacă pagina ascultă atingerile
+document.addEventListener("touchstart",()=>{},{passive:true});
 const DERULABILE=".list,.sheet-body,.setup,.picker,.picker-card,.info-date,.days";
 document.addEventListener("touchmove",e=>{
   const z=e.target.closest(DERULABILE);
