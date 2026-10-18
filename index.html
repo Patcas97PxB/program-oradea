@@ -419,7 +419,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v55";
+const VERSIUNE_APP = "18.10 · v56";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -1009,7 +1009,9 @@ async function cautaZbor(zbor,btn){
     const r=await fetch(URL_ZBORURI,{cache:"no-store"}), j=await r.json();
     if(j.eroare) throw new Error(j.eroare);
     const cod=nrZbor(zbor), cifre=cod.replace(/^[A-Z0-9]{2}(?=\d)/,"").replace(/^[A-Z]+/,"");
-    const z=(j.sosiri||[]).find(x=>nrZbor(x.nr)===cod)||(j.sosiri||[]).find(x=>cifre&&nrZbor(x.nr).endsWith(cifre));
+    // același număr poate apărea ieri, azi și mâine: alegem cursa cu ora cea mai apropiată de acum
+    const acum=Date.now()/1000, aproape=L=>L.sort((a,b)=>Math.abs((a.est||a.prog)-acum)-Math.abs((b.est||b.prog)-acum))[0];
+    const toate=j.sosiri||[], z=aproape(toate.filter(x=>nrZbor(x.nr)===cod))||aproape(toate.filter(x=>cifre&&nrZbor(x.nr).endsWith(cifre)));
     const fr=`https://www.flightradar24.com/data/flights/${(z?z.nr:cod).toLowerCase()}`;
     let t;
     if(!z) t=`Nu apare acum la sosirile Oradea.`;
