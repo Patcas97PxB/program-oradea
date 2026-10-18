@@ -252,6 +252,12 @@ button.b-act{cursor:pointer}
 
 .panou{background:#05070c;border:1px solid #1d2433;border-radius:14px;overflow:hidden;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;flex:none}
 .panou-titlu{display:flex;justify-content:space-between;align-items:baseline;padding:12px 12px 10px;font:800 15px var(--f-ui);letter-spacing:.06em;color:#fff}
+.pt-dr{display:flex;align-items:center;gap:10px}
+.btn-sunet{width:36px;height:36px;border-radius:10px;border:1px solid #1d2433;background:#0d1220;color:#fcd34d;display:grid;place-items:center;position:relative;transition:transform 160ms var(--ease-out)}
+.btn-sunet::before{content:"";position:absolute;inset:-4px}
+.btn-sunet:active{transform:scale(.92)}
+.btn-sunet[aria-pressed="false"]{color:#64748b}
+.btn-sunet svg{width:18px;height:18px}
 .panou-titlu small{font-size:12px;color:#64748b;letter-spacing:0}
 .panou-cap,.panou-rd{display:grid;grid-template-columns:62px 86px minmax(0,1fr);gap:8px;padding:9px 12px;align-items:center}
 .panou-cap{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:#64748b;border-top:1px solid #1d2433;border-bottom:1px solid #1d2433}
@@ -458,7 +464,7 @@ button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-act
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v63";
+const VERSIUNE_APP = "18.10 · v64";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -757,6 +763,8 @@ const DI={
   avion:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>',
   scut:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
   info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>',
+  sunet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
+  mut:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m22 9-6 6M16 9l6 6"/></svg>',
   echipa:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></svg>'
 };
 function openDetail(id,synced){
@@ -1099,6 +1107,25 @@ async function iaZboruri(tip){
 }
 // Tabelă de aeroport cu plăcuțe rotative (split-flap): fiecare caracter se rotește prin litere/cifre și se oprește pe cel corect.
 // Rândurile pornesc decalat, starea apare după ce s-a oprit rândul. Cu „Reducere mișcare”: direct textul final.
+const SUNET={ctx:null,buf:null,pornit:store.get("po.sunetPaleta","1")!=="0"};
+function sunetPregateste(){   // iOS cere ca sunetul să fie pornit dintr-o atingere: se apelează la apăsarea butonului
+  if(!SUNET.pornit)return;
+  try{
+    if(!SUNET.ctx){const C=window.AudioContext||window.webkitAudioContext;SUNET.ctx=new C();
+      const sr=SUNET.ctx.sampleRate,n=Math.floor(sr*.018),b=SUNET.ctx.createBuffer(1,n,sr),d=b.getChannelData(0);
+      for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.exp(-i/(sr*.0035));   // plesnitură scurtă, se stinge în ~4 ms
+      SUNET.buf=b;}
+    if(SUNET.ctx.state!=="running")SUNET.ctx.resume();
+  }catch(e){}
+}
+function clic(cate,final){
+  const c=SUNET.ctx;if(!SUNET.pornit||!c||c.state!=="running")return;
+  const src=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
+  src.buffer=SUNET.buf;src.playbackRate.value=final?.7:.85+Math.random()*.45;
+  f.type="bandpass";f.frequency.value=final?1300:1900+Math.random()*1500;f.Q.value=1.4;
+  g.gain.value=final?.22:Math.min(.26,.07+.018*cate);
+  src.connect(f);f.connect(g);g.connect(c.destination);src.start();
+}
 const PALETA_CAR="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 function paleta(root,rapid){
   const fara=matchMedia("(prefers-reduced-motion: reduce)").matches, tiles=[], PAS=rapid?45:58;
@@ -1117,17 +1144,19 @@ function paleta(root,rapid){
   if(fara||!tiles.length)return;
   const t0=performance.now();
   (function pas(now){
-    let gata=true;
+    let gata=true,rotite=0,oprite=0;
     for(const T of tiles){
       const n=Math.floor((now-t0-T.st)/PAS);
       if(n<0){gata=false;continue;}
-      if(n<T.fl){gata=false;if(n!==T.n){T.n=n;T.el.textContent=PALETA_CAR[(Math.random()*PALETA_CAR.length)|0];T.el.className="fl "+(n%2?"a":"b");}}
-      else if(!T.gata){T.gata=true;T.el.textContent=T.fin===" "?"\u00a0":T.fin;T.el.className="fl "+((T.n||0)%2?"b":"a");}
+      if(n<T.fl){gata=false;if(n!==T.n){T.n=n;rotite++;T.el.textContent=PALETA_CAR[(Math.random()*PALETA_CAR.length)|0];T.el.className="fl "+(n%2?"a":"b");}}
+      else if(!T.gata){T.gata=true;oprite++;T.el.textContent=T.fin===" "?"\u00a0":T.fin;T.el.className="fl "+((T.n||0)%2?"b":"a");}
     }
+    if(oprite)clic(oprite,true);else if(rotite)clic(rotite,false);
     if(!gata&&root.isConnected)requestAnimationFrame(pas);
   })(t0);
 }
 async function panouZboruri(zi,ziAfisata,tip="sosiri",btn){
+  sunetPregateste();
   const txt=btn&&btn.innerHTML; if(btn){btn.disabled=true;if(btn.id!=="btnZboruri")btn.innerHTML=DI.avion+"Caut…";}
   let j;
   try{j=await iaZboruri(tip);}catch(e){if(btn){btn.disabled=false;btn.innerHTML=txt;}toast("Nu pot afla acum zborurile. Încearcă din nou.");return;}
@@ -1137,7 +1166,7 @@ async function panouZboruri(zi,ziAfisata,tip="sosiri",btn){
   const stare=z=>{const st=stareZbor(z,pl);return `<span class="x ${st.rosu?"tarziu":st.ok?"ok":st.aer?"aer":z.ate&&z.ate.e||z.est?"est":""}">${st.scurt}</span>`;};
   const p=$("#picker");if(p.hidden)delete p.dataset.faraAnim;else p.dataset.faraAnim="1"; // schimbarea filei nu mai urcă foaia din nou
   p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Zborurile Aeroportului Oradea">
-    <div class="panou"><div class="panou-titlu">${pl?"PLECĂRI":"SOSIRI"} · ORADEA<small>${esc(ziAfisata||zi)}</small></div>
+    <div class="panou"><div class="panou-titlu">${pl?"PLECĂRI":"SOSIRI"} · ORADEA<span class="pt-dr"><small>${esc(ziAfisata||zi)}</small><button type="button" class="btn-sunet" id="btnSunet" aria-pressed="${SUNET.pornit}" aria-label="${SUNET.pornit?"Oprește sunetul tabelei":"Pornește sunetul tabelei"}">${SUNET.pornit?DI.sunet:DI.mut}</button></span></div>
       <div class="panou-file"><button type="button" data-tip="sosiri" aria-pressed="${!pl}">SOSIRI</button><button type="button" data-tip="plecari" aria-pressed="${pl}">PLECĂRI</button></div>
       ${lista.length?`<div class="panou-cap"><span>ORA</span><span>ZBOR</span><span>${pl?"SPRE":"DIN"}</span><span>STARE</span></div>
       ${lista.map(z=>`<a class="panou-rd" href="https://www.flightradar24.com/data/flights/${esc((z.nr||"").toLowerCase())}" target="_blank" rel="noopener"><span class="tabla" data-t="${oraRo(z.prog)}"></span><span class="tabla" data-t="${esc((z.nr||"—").slice(0,7))}"></span><span class="tabla oras" data-t="${esc((oras(pl?z.spre:z.de_la)||"?").toUpperCase().slice(0,12))}"></span>${stare(z)}</a>`).join("")}`
@@ -1145,6 +1174,9 @@ async function panouZboruri(zi,ziAfisata,tip="sosiri",btn){
     </div>
     <button class="picker-cancel" type="button">Închide</button></div>`;
   p.hidden=false;
+  $("#btnSunet").onclick=e=>{e.stopPropagation();SUNET.pornit=!SUNET.pornit;store.set("po.sunetPaleta",SUNET.pornit?"1":"0");
+    const b=e.currentTarget;b.setAttribute("aria-pressed",SUNET.pornit);b.innerHTML=SUNET.pornit?DI.sunet:DI.mut;
+    b.setAttribute("aria-label",SUNET.pornit?"Oprește sunetul tabelei":"Pornește sunetul tabelei");if(SUNET.pornit){sunetPregateste();clic(3,true);}};
   paleta(p,!!p.dataset.faraAnim);
   p.querySelectorAll("[data-tip]").forEach(x=>x.onclick=()=>{if(x.dataset.tip!==tip)panouZboruri(zi,ziAfisata,x.dataset.tip);});
   p.querySelector(".picker-cancel").onclick=()=>p.hidden=true;
