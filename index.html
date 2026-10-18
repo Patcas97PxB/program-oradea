@@ -127,7 +127,8 @@ button,.card,.act{-webkit-user-select:none;user-select:none}
   background:var(--card-gradient);border:1px solid var(--line);border-radius:16px;padding:0;
   box-shadow:var(--shadow),0 0 22px -14px var(--t);overflow:hidden}
 .card::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px;border-radius:0 4px 4px 0;background:var(--t);box-shadow:0 0 12px var(--t)}
-.card:active{transform:scale(.99)}
+.card{transition:transform 160ms var(--ease-out)}
+.card:active{transform:scale(.985)}
 .card.done{opacity:.5}
 /* Varianta B · bilet subțire (aleasă 17.10): sus ora · tipul · etichete · rezervarea; jos RFR · plăcuța · clientul;
    în dreapta un singur buton (Iau eu / Finalizat) sau cine o are. Aceeași înălțime pentru toate. */
@@ -211,8 +212,9 @@ button.b-act{cursor:pointer}
   padding:6px 11px;font-weight:800;font-size:11px;letter-spacing:.08em}
 .rfr-btn[aria-pressed="true"]{background:var(--rfr);border-color:var(--rfr);color:#2a0030;box-shadow:0 0 14px -2px rgba(255,79,255,.8)}
 .card-take{position:relative;overflow:hidden;flex:none;min-height:38px;white-space:nowrap;border:0;border-radius:10px;padding:9px 14px;font-size:13px;font-weight:800;color:#fff;
-  background-image:var(--brand-gradient);background-size:250% 100%;animation:newGrad 14s ease-in-out infinite;box-shadow:0 10px 26px -12px rgba(124,58,237,.9),0 0 0 1px rgba(0,0,0,.4)}
-.card-take::after,.take::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:35%;pointer-events:none;
+  background-image:var(--brand-gradient);background-size:250% 100%;box-shadow:0 10px 26px -12px rgba(124,58,237,.9),0 0 0 1px rgba(0,0,0,.4)}
+.card-take::after{display:none}
+.take::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:35%;pointer-events:none;
   background:linear-gradient(100deg,transparent,rgba(255,255,255,.38),transparent);transform:skewX(-18deg);animation:btnShine 6s ease-in-out infinite}
 .card-take.join{background:transparent;animation:none;color:#bfdbfe;box-shadow:inset 0 0 0 1.5px #3b82f6}
 .card-take.finish{background:var(--predare);animation:none;color:var(--on-ok);box-shadow:0 8px 20px -10px rgba(34,197,94,.9)}
@@ -225,7 +227,7 @@ button.b-act{cursor:pointer}
 .info-date p{margin:0}
 
 /* Detalii */
-.sheet{position:absolute;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.sheet{position:absolute;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;transform:translateX(100%);transition:transform 300ms var(--ease-drawer)}
 .sheet.open{transform:none}
 /* Detalii (ales 17.10): antet 3D · listă cu iconițe · bară de acțiuni jos */
 .d-cap{position:relative;overflow:hidden;color:#fff;padding:calc(var(--sat) + 22px) 16px 20px;display:flex;flex-direction:column;gap:10px;
@@ -319,6 +321,18 @@ button.b-act{cursor:pointer}
 .pax-call{flex:none;text-decoration:none;font-weight:800;font-size:13px;color:var(--on-ok);background:var(--predare);border-radius:10px;padding:8px 12px}
 
 /* Alegerea numărului, mesaje */
+:root{--ease-out:cubic-bezier(.23,1,.32,1);--ease-drawer:cubic-bezier(.32,.72,0,1)}
+/* apăsare: tot ce se poate atinge răspunde imediat (scale .97, 160 ms) */
+button,a,.picker-row,.panou-rd{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.d-main,.d-mini,.d-rot,.d-rfr,.card-take,.pas,.btn-zboruri,.icon-btn,.back,.panou-file button,.picker-cancel,.picker-row,.panou-rd,.pax-call,.link-btn{transition:transform 160ms var(--ease-out)}
+.d-main:active,.d-mini:active,.d-rot:active,.d-rfr:active,.card-take:active,.pas:active,.btn-zboruri:active,.icon-btn:active,.back:active,.panou-file button:active,.picker-cancel:active,.pax-call:active,.link-btn:active{transform:scale(.97)}
+.picker-row:active,.panou-rd:active{transform:scale(.985)}
+/* fereastra de jos (Sosiri, Pe cine suni, Contul meu): fundalul apare, foaia urcă din jos */
+@keyframes voal{from{opacity:0}}
+@keyframes urca{from{transform:translateY(100%)}}
+.picker:not([hidden]){animation:voal 200ms var(--ease-out)}
+.picker:not([hidden]) .picker-card{animation:urca 300ms var(--ease-drawer)}
+.picker[data-fara-anim] .picker-card,.picker[data-fara-anim]{animation:none}
 .picker{position:absolute;inset:0;z-index:45;background:rgba(3,6,12,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:flex-end}
 .picker-card{width:100%;background:#10172a;border-top:1px solid var(--line);border-radius:22px 22px 0 0;padding:16px 14px calc(var(--sab) + 16px);
   display:flex;flex-direction:column;gap:8px;max-height:85%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
@@ -333,7 +347,7 @@ button.b-act{cursor:pointer}
 .picker-cancel{margin-top:4px;border:0;background:transparent;color:var(--muted);font-weight:700;padding:10px}
 .toast{position:absolute;left:50%;bottom:calc(var(--sab) + 22px);z-index:30;transform:translate(-50%,20px);opacity:0;pointer-events:none;
   background:#232d45;color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:11px 14px;font-weight:700;font-size:13.5px;
-  width:max-content;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.5);transition:opacity .25s,transform .25s}
+  width:max-content;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.5);transition:opacity 200ms var(--ease-out),transform 200ms var(--ease-out)}
 .toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
 .toast button{margin-left:12px;border:0;background:transparent;color:#93c5fd;font-weight:800;text-decoration:underline;padding:0}
 
@@ -357,7 +371,7 @@ button.b-act{cursor:pointer}
 .cont-row small{display:block;color:var(--muted);font-size:12.5px}
 .cont-row button{flex:none;border:1px solid var(--line);background:var(--surface-3);border-radius:10px;padding:8px 11px;font-weight:800;font-size:12.5px}
 .cod-mare{font-size:34px;font-weight:800;letter-spacing:.18em;text-align:center;padding:14px;border-radius:14px;background:var(--bg-deep);border:1px dashed #3b82f6;font-variant-numeric:tabular-nums}
-@media (prefers-reduced-motion:reduce){.sheet,.toast{transition:none}.rfr-track,.take,.card-take,.take::after,.card-take::after,.icon-btn.loading svg{animation:none}}
+@media (prefers-reduced-motion:reduce){.sheet,.toast{transition:none}.picker:not([hidden]),.picker:not([hidden]) .picker-card{animation:voal 150ms ease}.rfr-track,.take,.card-take,.take::after,.card-take::after,.icon-btn.loading svg{animation:none}}
 </style>
 </head>
 <body>
@@ -421,7 +435,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v58";
+const VERSIUNE_APP = "18.10 · v59";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -1068,7 +1082,7 @@ async function panouZboruri(zi,ziAfisata,tip="sosiri",btn){
   const pl=tip==="plecari";
   const lista=(j.sosiri||[]).filter(z=>z.prog&&ziRo(z.prog)===zi).sort((a,b)=>a.prog-b.prog);
   const stare=z=>{const st=stareZbor(z,pl);return `<span class="x ${st.rosu?"tarziu":st.ok?"ok":st.aer?"aer":z.ate&&z.ate.e||z.est?"est":""}">${st.scurt}</span>`;};
-  const p=$("#picker");
+  const p=$("#picker");if(p.hidden)delete p.dataset.faraAnim;else p.dataset.faraAnim="1"; // schimbarea filei nu mai urcă foaia din nou
   p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Zborurile Aeroportului Oradea">
     <div class="panou"><div class="panou-titlu">${pl?"PLECĂRI":"SOSIRI"} · ORADEA<small>${esc(ziAfisata||zi)}</small></div>
       <div class="panou-file"><button type="button" data-tip="sosiri" aria-pressed="${!pl}">SOSIRI</button><button type="button" data-tip="plecari" aria-pressed="${pl}">PLECĂRI</button></div>
