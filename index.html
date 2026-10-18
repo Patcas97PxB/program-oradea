@@ -257,7 +257,8 @@ button.b-act{cursor:pointer}
 .panou-rd:last-child{border-bottom:0}
 .panou-rd span:nth-child(3){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fde68a}
 .panou-rd .x{font-size:11.5px;color:#94a3b8;text-align:right;white-space:nowrap}
-.panou-rd .x.ok{color:#4ade80}.panou-rd .x.est{color:#7dd3fc}
+.panou-rd .x.ok{color:#4ade80}.panou-rd .x.est{color:#7dd3fc}.panou-rd .x.tarziu{color:#f87171}
+.zb-tarziu{color:#f87171}
 .panou-gol{padding:14px 12px 16px;font:600 13.5px var(--f-ui);color:#94a3b8;line-height:1.5;border-top:1px solid #1d2433}
 .picker-row .sz{font-style:normal;font-size:13px;font-weight:800;color:var(--muted);white-space:nowrap;background:transparent;border:0;padding:0;box-shadow:none}
 .picker-row .sz.ok{color:#22c55e}.picker-row .sz.est{color:#7dd3fc}
@@ -419,7 +420,7 @@ button.b-act{cursor:pointer}
 
 <script>
 // Linkul scriptului Google (fără cheie). Cheia se introduce pe telefon și rămâne doar acolo.
-const VERSIUNE_APP = "18.10 · v56";
+const VERSIUNE_APP = "18.10 · v57";
 const DREPTURI = "© 2026 Bogdan Pătcaș · Toate drepturile rezervate";
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby50bIQQpuRlDIcnf-SBCaV53uVvxECNLM-CUju0e1-q2huvYHPWwJeB9DIoHtwJzCI/exec";
 // Proiectul Firebase pentru notificări. Valorile astea sunt publice (identifică proiectul, nu dau acces la nimic).
@@ -1018,7 +1019,7 @@ async function cautaZbor(zbor,btn){
     else if(z.real) t=`✓ A aterizat la ${oraRo(z.real)}${z.de_la?" · din "+esc(z.de_la):""}`;
     else{
       const ora=z.est||z.prog, min=Math.round((ora*1000-Date.now())/60000), intarziere=z.est&&z.prog?Math.round((z.est-z.prog)/60):0;
-      t=`${z.est?"Aterizează":"Programat"} la ${oraRo(ora)}${min>0?` · în ${min<60?min+" min":Math.floor(min/60)+" h "+(min%60)+" min"}`:""}${intarziere>4?` · +${intarziere} min întârziere`:""}${z.de_la?" · din "+esc(z.de_la):""}${z.est?"":" (fără estimare încă)"}`;
+      t=`${z.est?"Aterizează":"Programat"} la ${oraRo(ora)}${min>0?` · în ${min<60?min+" min":Math.floor(min/60)+" h "+(min%60)+" min"}`:""}${intarziere>5?` · <span class="zb-tarziu">+${intarziere} min întârziere</span>`:""}${z.de_la?" · din "+esc(z.de_la):""}${z.est?"":" (fără estimare încă)"}`;
     }
     info.innerHTML=`${t} · <a href="${fr}" target="_blank" rel="noopener">pe hartă ↗</a>`;
   }catch(e){info.textContent="Nu pot afla acum zborul. Încearcă din nou.";}
@@ -1041,7 +1042,10 @@ async function panouZboruri(zi,ziAfisata,tip="sosiri",btn){
   if(btn){btn.disabled=false;btn.innerHTML=txt;}
   const pl=tip==="plecari";
   const lista=(j.sosiri||[]).filter(z=>z.prog&&ziRo(z.prog)===zi).sort((a,b)=>a.prog-b.prog);
-  const stare=z=>z.real?`<span class="x ok">${pl?"DECOLAT":"ATERIZAT"} ${oraRo(z.real)}</span>`:z.est?`<span class="x est">EST ${oraRo(z.est)}</span>`:`<span class="x">PROGRAMAT</span>`;
+  // întârziere = ora reală / estimată cu peste 5 min după cea programată → roșu, cu minutele
+  const intarzie=z=>{const o=z.real||z.est;return o&&z.prog?Math.round((o-z.prog)/60):0;};
+  const plus=z=>intarzie(z)>5?` +${intarzie(z)}`:"";
+  const stare=z=>z.real?`<span class="x ${intarzie(z)>5?"tarziu":"ok"}">${pl?"DECOLAT":"ATERIZAT"} ${oraRo(z.real)}${plus(z)}</span>`:z.est?`<span class="x ${intarzie(z)>5?"tarziu":"est"}">${intarzie(z)>5?"ÎNTÂRZIE ":"EST "}${oraRo(z.est)}${plus(z)}</span>`:`<span class="x">PROGRAMAT</span>`;
   const p=$("#picker");
   p.innerHTML=`<div class="picker-card" role="dialog" aria-label="Zborurile Aeroportului Oradea">
     <div class="panou"><div class="panou-titlu">${pl?"PLECĂRI":"SOSIRI"} · ORADEA<small>${esc(ziAfisata||zi)}</small></div>
